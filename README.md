@@ -443,6 +443,100 @@ Turning our functional component into a class-based one is not enough on its own
 
 ## Section 5 - State in React Components
 
+##### `Originally Started: 11/22/21`
+
+### The Rules of State
+
+Rules of State:
+
+1. Only usable with class components (Technically can be used with Functional components using **Hooks** -- but that's more challenging!)
+2. You will confuse props with state :(
+3. "State" is a JS object that contains data strictly relevant to a component.
+4. Updating "state" on a component causes the component (and children) to (almost) instantly re-render.
+5. State must be initialized when a component is 1st created.
+6. State can **only** be updated using the function "setState" -- never directly!
+
+### Initializing State Through Constructors
+
+- It is a React requirement that we define **render()** in our Class components, which returns JSX
+- We can also define the special **constructor()** function (not required by React, by belongs to JS itself)
+  - Very first function to be called when an instance of a class is created
+  - Good location to initialize our **state**. (Not the only way, but recommended)
+  - Accepts a **props** argument.
+  - Must call `super(props)` which calls the parent's class constructor (from React.Component)
+- The reason we call the constructor function (and therefor the required super()) is so we can initialize our state object
+
+```js
+// In a component definition
+constructor(props) {
+  super(props);
+  this.state = { latitude: null };
+}
+```
+
+It's a good idea to default our state to appropriate values. In our case we expect a number for latitude, so we default it to null.
+
+### Updating State Properties
+
+We can freely reference the state object and the properties inside of it from any function inside of our component.
+
+Since the **render()** method is called fairly frequently, we never want to put requests to APIs in it, or anything computationally-heavy. So we should (for now) put our gelocation API call inside our constructor.
+
+```js
+window.navigator.geolocation.getCurrentPosition(
+  // NEVER do this.state.latitude = value;
+  position => this.setState({ latitude: position.coords.latitude });
+  err => console.log(err);
+);
+```
+
+The **ONLY** time we do direct assignment to `this.state` is in the constructor when first initializing it!
+
+### App Lifecycle Walkthrough
+
+Our new app timeline:
+Instance of App component is created - > App component's constructor functon gets called -> State object is created and assigned to the this.state property
+-> We call gelocation service -> React calls component's render method -> App returns JSX, gets rendered to page as HTML -> ... -> We get result of gelocation!
+-> We update our state objet with a call to this.setState -> React calls our render method a second time -> Render method returns some (updated) JSX
+-> React takes that JSX and updates content on the screen
+
+For a brief moment, we render our app without "Latitude" having a value. This makes for an awkward user experience.
+
+### Handling Errors Gracefully
+
+Any time we want to update our component, we are going to update our state. So if we get an error in our gelocation API call, we want to set some state to force a re-render with an error message to the user. So we should add an error state!
+
+```js
+// In error message callback of geolocation.getCurrentPosition
+(err) => {
+  this.setState({ errorMessage: err.message });
+};
+```
+
+**Important** to note how we are not required to update every property inside our state object at once. We can just update the properties we need. We also never add or remove properties.
+
+We now have the ability to render our errorMessage to the screen. But we don't want to render that message when there's not even an error! So how can we only sometimes show this message? Next section covers that!
+
+### Conditionally Rendering Content
+
+We have 3 scenarios for what we might need to render to the screen:
+
+1. Have latitude, no error message -> Show latitude
+2. No latitude, have error message -> Show error
+3. No latitude, no error message -> Show "loading"
+
+You CAN use if statements in a class-based Component's render function: Do a series of if-statements where each one will "return" the appropriate content. Perhaps other instructors simply meant you can't do if-statements INSIDE the return statements? Or maybe not in Functional Components? **TO-DO: Research that!**
+
+We use conditional rendering to handle this:
+
+```js
+render() {
+  if (this.state.errorMessage && !this.state.latitude) return <div>Error: {this.state.errorMessage}</div>;
+  if (!this.state.errorMessage && this.state.latitude) return <div>Latitude: {this.state.latitude}</div>;
+  return <div>Loading</div>;
+}
+```
+
 ## Section 6 - Understanding Lifecycle Methods
 
 ## Section 7 - Handling User Input with Forms and Events
