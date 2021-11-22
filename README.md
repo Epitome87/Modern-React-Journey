@@ -345,6 +345,102 @@ const ApprovalCard = (props) => {
 
 ## Section 4 - Structuring Apps with Class-Based Components
 
+##### `Originally Started: 11/22/21`
+
+### Class-Based Components
+
+The other type of Component is a **class-based** component. It is helpful to understand React's history, for the origin's of class and functioanal components.
+
+How React _Used_ to Be
+
+- _Functional_ Components:
+  - Can produce JSX to show content to the user
+- _Class_ Components:
+  - Can produce JSX to show content to the user
+  - Can use the Lifecycle Method system to run code at specific points in time
+  - Can use the "state" system to update content on the screen
+
+How React Is _Now_
+
+- **Functional** Components:
+  - Can produce JSX to show content to the user
+  - Can use **Hooks** to run code at specific points in time
+  - Can use **Hooks** to access state system and update content on the screen
+- Class Components remain the same
+
+In modern React, functional components are more or less the same as Class-based components with this **Hooks** system. So why should we bother learning both?
+
+- Companies with _established projects_ are using Class-based components
+- Companies with _newer projects_ may be using Class-based _or_ Function-based components
+- Personally, I will be writing nearly all my compnents as functional ones, with the occasional class component to help me remember its syntax
+
+As far as this course is concerned, it will also be easier to learn Class-based components, then Hooks, then Redux than it will be to simply learn Hooks then Redux. So we learn Class-based components first
+
+### Application Overview
+
+In this section, we will build a rather pointless, simple app. It will take the user's geolocation and current season and display a corresponding message and image. For example, in summer it will show a sun icon and render something like "Hit the beach!" and in winter it will render a snowflake and say "Burr, it's chilly!"
+
+App Challenges
+
+- Need to get the user's physical location
+- Need to determine the current month
+- Need to chagne text and styling based on location and month
+
+### Scaffolding the App
+
+How can we build this app? At _first_ glance we _might_ get away with just two components:
+
+1. App: Has to determine location and month. Passes some props down to its child...
+2. SeasonDisplay: Shows different text/icon based on props
+
+### Getting a Users Physical Location
+
+We can get a user's location with functions that are built into most modern browsers! We use the Gelocation API:
+
+```js
+window.navigator.gelocation.getCurrentPosition(
+  (position) => console.log(position),
+  (err) => console.log(err)
+);
+```
+
+This is an async function, which takes time to process. So we need to use callbacks -- the first being a _success_ callback and the second being a _failure_. It returns a "Position" object, which then has a "coords" object with "latitude" and "logitude" (among others) as properties.
+
+If we get an error message and our location cannot be found, we can force our location to a preset location in the dev tools. In the console menu, we go to "Sensors", and "Geolocation" and then select a preset location.
+
+### Resetting Gelocation Preferences
+
+- What if the user declines our app from knowing the user's location? We need to develop our app in a way where it works when the user denies (or the API simply fails).
+- We also need to be able to reset the browser to ask us for our location again, since it never asks again once you accept / decline the first time.
+  - To do so, we click the "i" by the URL in our browser (in Chrome), and then change Location from "Allow" to "Ask"
+
+### Handling Async Operatiosn with Functional Components
+
+Timeline of our app:
+
+- JS file loaded by browser -> App component gets created -> Call to gelocation service -> App returns JSX, gets rendered to page as HTML -> ... -> We get result of gelocation
+
+Since the gelocation call takes several seconds to return a result, but we want to render something that depends on that result, we "need" to use a Class-based component. (Note, in modern React we also just use Hooks in a functional component.) We need a way to wait for the geolocation to return a result, so we will need a Class-based component in conjunction with React's state system. In old React, with a functional component we have no way of telling the component to re-render itself after it gets the data we need from the gelocation API call. So we will be stuck rendering its initial state, which is no data in our gelocation object.
+
+### Refactoring from Functional to Class Components
+
+Rules of **Class** Components:
+
+1. Must be a Javascript Class (introduced in ES2015).
+2. This class must extend (subclass) React.Component.
+3. Must define a "render" method that returns some amount of JSX.
+
+```class App extends React.Component {
+  render() {
+    return <div>Latitude: </div>
+  }
+}
+```
+
+We "borrow" a lot of built-in functionlity and methods when we extend React.Component, including this render method.
+
+Turning our functional component into a class-based one is not enough on its own to solve our gelocation issue. We also need to take advantage of the React state system.
+
 ## Section 5 - State in React Components
 
 ## Section 6 - Understanding Lifecycle Methods
@@ -352,6 +448,44 @@ const ApprovalCard = (props) => {
 ## Section 7 - Handling User Input with Forms and Events
 
 ## Section 8 - Making API Requests with React
+
+### Fetching Data
+
+We will make use of the Unsplash API.
+
+### Axios vs Fetch
+
+How are we going to make a request from inside our React app?
+
+- It is not React's job itself to make a request to our Unsplash API library. React is only about showing content to the user and handling user interaction
+- To make network / AJAX request, it is the AJAX client's responsibility
+  - It makes a request like "Send me data about pictures for 'cars'" to the Unsplash API, which then returns a result such as "Here are some car pictures!"
+
+Two of the most commonly used options for making AJAX requests
+
+- **axios**: Stand-alone 3rd party library, easily installed using npm
+- **fetch**: Singular function built into modern browsers. No installation required.
+
+Since axios handles requests in a simpler, more predictable fashion, we will prefer it. We install with `npm install --save axios`
+
+**Convention:** Put third-party import statements above those of our own files.
+
+### Viewing Request Results
+
+This section covers how to work with the Unsplash API and axios.
+
+```js
+onSearchSubmit(term) {
+  axios.get('https://api.unsplash/com/search/photos', {
+    params: { query: term },
+    headers: {
+      Authorization: 'Client-ID <OurAPIAccessKey>',
+    },
+  });
+}
+```
+
+The result is some JSON that contains the result of our request for the search term.
 
 ## Section 9 - Building Lists of Records
 
