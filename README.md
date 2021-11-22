@@ -452,7 +452,7 @@ Rules of State:
 1. Only usable with class components (Technically can be used with Functional components using **Hooks** -- but that's more challenging!)
 2. You will confuse props with state :(
 3. "State" is a JS object that contains data strictly relevant to a component.
-4. Updating "state" on a component causes the component (and children) to (almost) instantly re-render.
+4. Updating "state" on a component causes the component (and children) to (almost) instantly re-render. **Important** to realize that an instance variable of a component that changes will not automatically cause the component to re-render, even if that variable is used in the render method.
 5. State must be initialized when a component is 1st created.
 6. State can **only** be updated using the function "setState" -- never directly!
 
@@ -539,6 +539,221 @@ render() {
 
 ## Section 6 - Understanding Lifecycle Methods
 
+##### `Originally Started: 11/22/21`
+
+### Introducing Lifecycle Methods
+
+The second way to initialize state relies on a concept known as _lifecycle methods_
+
+Component Lifecycle (Over Time)
+
+- **constructor**
+- **render** -> At this point c ontent is visible on screen
+- **componentDidMount** -> Sit and wait for updates...
+- **componentDidUpdate** -> Sit and wait until this component is no longer shown...
+- **componentWillUnmount**
+
+If we define these lifecycle methods, we can put our own code inside them to handle logic depending on the lifecycle of our component.
+
+- We use _componentDidMount_ to handle logic that we want to occur only once, when the component first initializes
+- We use _componentDidUpdate_ to handle logic that will repeat any time the component updates (renders)
+- We use _componentWIllUnmount_ to perform any cleanup we wish to happen after we wish to no longer show the component
+
+```js
+// Will only be logged once
+componentDidMount() {
+  console.log("My component was rendered to the screen.");
+}
+
+// Logged any time state changes
+componentDidUpdate() {
+  console.log("My component was just updated - it re-rendered!");
+}
+```
+
+### Why Lifecycle Methods
+
+Why would we even use these different lifecycle methods?
+
+- **constructor**
+  - Good place to do one-time setup
+- **render**
+  - Avoid doing anything besides returning JSX
+- **componentDidMount**
+  - Good place to do data-loading
+- **componentDidUpdate**
+  - Good place to do more data-loading when state/props change
+- **componentWillUnmount**
+  - Good place to do cleanup (especially for non-React stuff)
+
+Sounds like constructor and componentDidMount do the same thing...
+
+- Although we _could_ do data-loading in the constructor (or an API request) we should do it in componentDidMount.
+- Good to centralize data-loading in componentDidMount since it leads to more clear, organized code
+
+3 other lifecycle methods (almost never used):
+
+1. **shouldComponentUpdate**
+2. **getDrivedStateFromProps**
+3. **getSnapshotBeforeUpdate**
+
+### Refactoring Data Loading to Lifecycle Methods
+
+In this lesson we just refactored the async geolocation call from the constructor into the componentDidMount method.
+
+### Alternate State Initialization
+
+Now we can come back and address the second way you can / might see state initialized:
+
+```js
+state = { latitude: null, errorMessage: '' };
+```
+
+No need for the `this` keyword. We can also drop the constructor, if all we were doing in it is initializing state. Babel converts this to JS code that uses the constructor and calls super behind-the-scenes.
+
+### Passing States as Props
+
+We can pass our App's _latitude_ state and pass it as a prop to our _SeasonDisplay_ component:
+
+```js
+// In App's render()
+<SeasonDisplay latitude={this.state.latitude}>
+```
+
+- This is an extremely common React pattern to use, and forms the basis of React's state/prop system.
+- When latitude is updated in App, it re-renders itself. This also causes the SeasonDisplay (child) component to be re-rendered as well, since its prop is changing.
+
+### Determining Season
+
+We need a way to retrieve what season it is. We can create a helper function to do this, placing it outside the SeasonDisplay component since it is best to extract as much logic out of functional components as possible.
+
+```js
+const getSeason = (lat, month) => {
+  if (month > 2 && month < 9) return lat > 0 ? 'summer' : 'winter';
+  return lat > 0 ? 'winter' : 'summer';
+};
+
+// In SeasonDisplay's functional component
+const season = getSeason(props.latitutde, new Date().getMonth());
+return <div>The season is: {season}</div>;
+```
+
+### Ternary Expressions in JSX
+
+Instead of using a series of if-else statements in our SeasonDisplay component (but _outside_ the return statement for the JSX being rendered), we can make use of ternary operators:
+
+```js
+return (
+  <div>
+    {season === 'winter' ? "Burr, it's chilly!" : "Let's hit the beach!"}
+  </div>
+);
+```
+
+This way to do conditional rendering is a bit divisive in the React community. Some say it is best to not put that much logic directly into the JSX, and instead extract it out to a helper variable. But it's purely a matter of personal preference.
+
+### Showing Icons (with Material UI)
+
+To show an icon with Material UI (for our snowflake or sun) we can do:
+
+```js
+const icon = season === "winter" ? "snowflake" : "sun";
+<i className={`icon ${icon}} />
+```
+
+### Extracting Options to Config Objects
+
+To reduce the use of our rather identical two ternary operators (for determining the text and icon to use), we can utilize a useful pattern that we should make part of our routine. We will create a configuration object, placing it outside the component itself.
+
+```js
+const seasonConfig = {
+  summer: {
+    text: "Let's hit the beach!",
+    iconName: 'sun',
+  },
+  winter: {
+    text: "Burr, it's cold!",
+    iconName: 'snowflake',
+  },
+};
+
+const season = getSeason(props.latitude, new Date().getMonth());
+// Can replace our two ternary operators with:
+const { text, iconName } = seasonConfig[season];
+```
+
+### Adding Some Styling
+
+Nothing important: This isn't a CSS course!
+
+### Showing a Loading Spinner
+
+As we refresh the page, there's nothing really going on while we wait for our location to be detected for the first time. We are just greeted with a plain white page with a small, st atic "Loading" text until we pick "Allow Location".
+
+Using the Material UI library, we make use of a "Spinner" to render in our conditional SeasonDisplay render method. We replace our simple "Loading" text with this Spinner. The logic of the spinner is exlusive to Material UI, so I won't bother noting it. The point is the use of conditional rendering to determine when the spinner should be rendering, and then render it.
+
+But our spinner's text it just "Loading...". What if we want it different, depending on our use-case?
+
+### Specifying Default Props
+
+...Well, we can pass a prop to the spinner!
+
+```js
+return <Spinner message='Please accept location request' />;
+```
+
+But what if we forgot to put the message prop in? We won't get any message rendering at all! We should have _some_ default text to fall-back to. We can do this with **default props**:
+
+```js
+const Spinner = (props) => {
+  return someJSX;
+};
+
+Spinner.defaultProps = {
+  message: 'Loading...',
+};
+```
+
+**TODO: Check if you can do the following, but I think you can**:
+
+```js
+const Spinner = (props) => {
+  this.defaultProps = { message: 'Loading' };
+};
+```
+
+### Avoiding Conditionals in Render
+
+Our render method uses a series of if-statements to determine what to render. But this could be problematic in some scenarios. What if we wanted to surround the rendered output - regardless of which one it is - in a div with some special styling (like a red border). We'd have to write this logic once for each return statement. It may be better to create helper render functions, to keep our render's return statement clean:
+
+```js
+renderContent() {
+  if (...) return someJSX;
+  if (...) return someOtherJSX;
+  return <Spinner message="Please accept location request" />;
+}
+
+render() {
+  return (
+    <div className="border red">
+      {renderContent()}
+    </div>
+  )
+}
+```
+
+So we try to avoid having multiple return statements inside a render method. Conditionally logic should, therefor, be put in a helper method.
+
+### Breather and Review
+
+Benefits of **Class** Components...
+
+- Easier code organization
+- Can use state (another React system) - Easier to handle user input
+- Understands lifecycle events -> Easier to do things when the app first starts
+
+It's harder to understand our functional component than it is our class component. We have all these helper functions up top (some which may be mistaken as our React component). We _could_ put the functional component at the top of the file, _but_ convention is to have the configs / helpers up top and the functional component at the bottom.
+
 ## Section 7 - Handling User Input with Forms and Events
 
 ## Section 8 - Making API Requests with React
@@ -584,8 +799,6 @@ The result is some JSON that contains the result of our request for the search t
 ## Section 9 - Building Lists of Records
 
 ## Section 10 - Using Ref's for DOM Access
-
-##### `Originally Started: 11/21/2021`
 
 ## Section 11 - Let's Test Your React Mastery!
 
