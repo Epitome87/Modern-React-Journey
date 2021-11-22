@@ -189,6 +189,160 @@ const App = () => {
 
 ## Section 3 - Communicating with Props
 
+### Three Tenets of Components
+
+1. Component **Nesting**
+
+- A component can be shown _inside_ of another
+
+2. Component **Reusability**
+
+- We want to make components that can be easily reused through our application
+
+3. Component Configuration: We should be able to configure a component when it is created
+
+### Application Overview
+
+In this section, we will create an app that displays a list of comments, with a username, avatar, comment time, and the text itself.
+
+### Getting Some Free Styling
+
+As the course is not teaching CSS, we try to spend less time on it by using the **Semantic UI** CSS framework. This library is simply a CSS file that will give us access to some styling. We can reference it here: `https://semantic-ui.com/`
+
+Easiest way to install:
+
+- Visit cdnjs.com and search semantic-ui
+- Find latest link tag: `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" integrity="sha512-8bHTC73gkZ7rZ7vpqUQThUDhqcNFyYi2xgDgPDHc+GXVGHXq+xPjynxIopALmOPqzo9JZj0k6OqqewdGO3EsrQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />`
+- Add this link tag into the head tag of public/index.html file
+- Can tell it was installed correctly if the font of the page changes, or going to browser's dev tools -> Network -> CSS, refresh page, and see that semantic.min.css was loaded up properly
+
+### Specifying Images in JSX
+
+**Very useful websites**: `https://github.com/marak/Faker.js/`
+
+- Open source library that can help us generate a lot of different types of fake data very quickly
+- Install with: `npm install --save faker` and import with `import faker from 'faker';`
+- Fairly large, so probably don't want to keep it inside an actual production project
+- Example usage:
+
+```js
+<img src={faker.image.avatar()} />
+```
+
+This will create an image that is random each time.
+
+### Extracting JSX to New Components
+
+Steps for creating a reusable, configurable component:
+
+1. Identify the JSX that appears to be duplicated.
+2. What is the purpose of that block of JSX? Think of a descriptive name for what it does.
+3. Create a new file to house this new component -- it should have the same name as the Component.
+4. Create a new Component in the new file, paste the JSX into it.
+5. Make the new component configurable by using React's "props" system.
+
+### Component Nesting
+
+Simple steps for using a Component within another:
+
+1. Export the component in the file you declare it in, so it can be available to other files:
+
+```js
+const CommentDetail = () => {
+  // return JSX, etc
+};
+
+export default CommentDetail;
+```
+
+2. In the file we wish to render that component, make sure to import it, using its relative path: `import CommentDetail from "./CommentDetail";`
+
+- Note we don't need to put the JS/JSX extention.
+
+3. Render the component:
+
+```js
+<App>
+  <CommentDetail />
+</App>
+```
+
+- Note we do not use curly-braces, even though we are referring to JavaScript variables inside of JSX. Components are the one exception to that rule: We treat the component like it is a JSX tag itself.
+
+### React's Props System
+
+In a typical _component hierarchy_, we have the App component up top. It will have **children** components that it renders, making it their **parent**. Those children can then have their own children, and we get a tree-like hierarchy of child/parent component relationships. To handle the communication of data between components, we use React's **prop system**
+
+Props
+
+- System for passing data from a _parent_ component to a _child_ component
+- Goal is to customize or configure a child component (how the component looks or how the user interacts with it)
+
+In our "comments" project, we could have the App component pass props that allow each CommentDetail component to have a different username, for example.
+
+### Passing and Receiving Props
+
+- A child cannot directly pass props up to a parent
+
+Example of passing a prop:
+
+```js
+// Giving CommentDetails an "author" prop
+<CommentDetail author='Matthew' />
+```
+
+- Value of prop isn't just limited to a hard-coded value, or string.
+- That value of the prop is only provided to _that_ instance of CommentDetail -- not all others
+
+Back in the CommentDetail component itself, we need to get access to this prop somehow. This is done as follows:
+
+```js
+const CommentDetail = (props) => {};
+```
+
+- By convention we name the argument of the component function "props"
+- We can now access the "author" prop we gave the component:
+
+```js
+<div>{props.author}</div>
+```
+
+### Passing Multiple Props
+
+We can pass as many properties as we'd like (although we should limit it within reason, for good component design)
+
+```js
+// In App
+<CommentDetail author="Matthew" date="Today at 4:45PM" />
+
+// In CommentDetail
+<div>Author: {props.author} - Date: {props.date}</div>
+```
+
+### Showing Custom Children
+
+Wrap content into another Component by using the `props.children` property inside the component you want another component rendered into. This renders whatever is between that custom component's tags. There are two steps required:
+
+1. Put the component (to be the child) between the opening and closing tag of the parent component
+2. In the parent component, access the child with the automatic prop React provides us with, `props.children`
+
+```js
+// In App.js
+<ApprovalCard>
+  <CommentDetail author='Matthew' />
+</ApprovalCard>;
+
+// In ApprovalCard
+const ApprovalCard = (props) => {
+  return (
+    <div>
+      <p>Do you approve this comment?</p>
+      {props.children}
+    </div>
+  );
+};
+```
+
 ## Section 4 - Structuring Apps with Class-Based Components
 
 ## Section 5 - State in React Components
