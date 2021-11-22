@@ -1,6 +1,12 @@
-# Modern React With Redux
+# Modern React (with Redux) Journey
 
 My journey through Stephen Grider's course on Udemy! It will consist of my notes, code that I type along with the instructor, projects guided by the course, and my own additions to the projects
+
+<img src="https://res.cloudinary.com/dg3gyk0gu/image/upload/v1604437767/eggo/React_Planet.png" alt="Astronaut With Dog" height="250" />
+
+<details>
+
+  <summary>My Personal Notes...</summary>
 
 ##### `Originally Started: 11/21/21`
 
@@ -86,6 +92,101 @@ ReactDOM.render(<App />, document.querySelector('#root'));
 
 ## Section 2 - Building Content with JSX
 
+##### `Originally Started: 11/21/21`
+
+### What is JSX?
+
+- Looks like HTML -- but it isn't!
+- Very similar in form and functions to HTML with a couple differences
+- Babel also is responsible for for processing our "JSX" that we write
+- Our browsers do not understand natively what JSX is. Babel converts it to normal looking JavaScript code
+- We can visit babeljs.io to write code and see the ES5 equivalent
+- Basically, a JSX render statement gets converted fromt and to the following:
+
+```js
+// JSX we write:
+const App = () => {
+  return <div>Hi!</div>;
+};
+
+// ES5 conversion:
+const App = () => {
+  return React.createElement('div', null, 'Hi!');
+};
+```
+
+- Any time we see JSX, we are writing it for _simplicity_ sake. If we had complicated components, with nested divs, the JavaScript equivalent would be tremendously unreadable and code-heavy!
+- We are not required to use JSX in React, but it is highly recommended.
+
+### Converting HTML to JSX,
+
+JSX vs HTML
+
+- Adding custom styling to an element uses different syntax
+- Adding a class to an element uses different syntax
+- JSX can reference JS variables
+
+### Inline Styling with JSX
+
+HTML: `<div style="background-color: red;"></div>`
+JSX: `<div style={{ backgroundColor: "red" }}></div>
+
+- The outer curly-brace indicates we want to reference a JavaScript variable in our JSX. The inner curly-brace indicates a JavaScript object, where the keys are the properties we want to style and the values are the value we want for that style
+- We remove the double quotes around the style (but they'll be necessary for the value we specify, typically)
+- For style properties, we remove any dashes and capitalize the next letter over (camelCase).
+
+### Converting Styling to JSX Format, Class vs ClassName
+
+- It's a bit of a community convention to use double quotes when we want to indicate a string. Any non-JSX property, by convention in the JavaScript community we make use of single quotes. But it's completely up to you if you rather use all double quotes, or even all single quotes! Example:
+
+```js
+<input id="name" type="text" />
+<button style={{ backgroundColor: 'blue', color: 'white' }}>Submit</button>
+```
+
+(Stephen also claims it is a JSX _requirement_ to use double quotes -- but this does not seem to be true now)
+
+### Class vs ClassName
+
+Another difference between JSX and HTML is the use of `className` in place of HTML's `class`:
+
+```js
+// In HTML
+<label class="label">
+
+// In JSX
+<label class="label">
+```
+
+Why do we have to do this? Well, `class` is a JavaScript keyword! So we just want to avoid potential collisions with the `class` keyword. We don't want to confuse JavaScript into thinking we want to definie a JS class. Nowadays, though, this is not an issue: JS and the tools around it are intelligent enough to deciper when we want a `class` declaration and using the `class` attribute inside some JSX.
+
+### Referencing JavaScript Variables in JSX
+
+- Can easily reference JavaScript variables and function calls inside JSX: We just wrap them in curly-braces:
+
+```js
+const btnText = 'Cilck me!';
+
+const App = () => {
+  return <button>{btnText}</button>;
+};
+
+- Strings, numbers, arrays, booleans are all supported in JSX.
+
+```
+
+### Values JSX Can't Show
+
+- In JSX, we are not allowed to take a JavaScript object and reference it inside of JSX -- specifically where it is expecting text. You can reference a specific object property, though -- like myObject.name -- just not myObject directly. Can use objects as attributes though (necessary for styles attribute!)
+
+- Results in error message similar to: "Objects are not valid as a React child"
+
+### Finding Forbidden Property Names
+
+- For labels, the `for` attribute is invalid: Use `htmlFor` instead. This avoids browsers or tools interpreting it as a traditional JavaScript for-loop. Not really necessary in modern development, but good to follow.
+
+- There are a couple other differences betwen JS and JSX, but many of them will not crash your application, so they will be harder to detect. You should reference your dev console frequently to be alerted to most of these
+
 ## Section 3 - Communicating with Props
 
 ## Section 4 - Structuring Apps with Class-Based Components
@@ -159,3 +260,5 @@ ReactDOM.render(<App />, document.querySelector('#root'));
 ## Section 36 - React Router + Redux Form v4
 
 ## Section 37 - Extras
+
+</details>
