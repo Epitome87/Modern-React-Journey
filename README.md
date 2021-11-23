@@ -756,6 +756,198 @@ It's harder to understand our functional component than it is our class componen
 
 ## Section 7 - Handling User Input with Forms and Events
 
+##### `Originally Started: 11/22/21`
+
+### App Overview
+
+Stuff to Still Figure Out
+
+- How do we get feedback from the user?
+- How do we fetch data from some outside API or server?
+- How do we show lists of records?
+
+While figuring this stuff out, we will be building another app in the next two sections. It will feature the ability to search for a term, use an API request to retrieve images that match that term, and then render that list of results as a simple column of images. In the next iteration of the app, we will tile the images across the screen, rather than just a vertical list with one image per row. The second iteration will be CSS-heavy, but also cover React-specific topics.
+
+### Component Design
+
+App Challenges
+
+- Need to get a serach term from the user
+- Need to use that search term to make a request to an outside API and fetch data
+- Need to take the fetched images and show them on the screen in a list
+
+Components We'll Use (to Start)
+
+App
+
+- Has instance of SearBar and ImageList
+
+SearchBar
+
+- Shows a text input
+- Handles typing event
+
+ImageList
+
+- Take a list of images and render them
+
+### Adding Some Project Structure
+
+We'll create a _components_ folder, where we store all our component files. We we all put App into its own file and put that in the folder too. It is common convetion to have App as its own file, rather than combining it with index.js like we have been.
+
+### Showing Forms to the User
+
+We need state to handle user input, so we will make _SearchBar_ a Class-based component. It will return a form with a text input. We then style it with Semantic UI.
+
+### Creating Event Handlers
+
+```js
+onInputChange(event) {
+  console.log(event.target.value);
+}
+
+render() {
+  return (
+    <input type="text" onChange={this.onInputChange}>
+  )
+}
+```
+
+- Built in prop names for event handlers: "onClick" = User clicks on something. "onChange" = user changes text in an input. "onSubmit" = user submits a form.
+  - We use these names as prop names. Some types of HTML elements do not support certain handlers (a div cannot be submitted or changed, for instance)
+- When passing a callback to an event handler, **do not** put the parentheses! This is a pointer to a function (which will be called on its own when appropriate). Including the parentheses would call the function immediately.
+- Our onInputChange is called with one argument being passed to it automatically, which we call the **event object**
+  - It is a normal JS object which contains a bunch of information about the event that occured
+  - We care mostly for the `event.target.value` property, when dealing with inputs
+- Convention for event handlers is to name them starting with "on", followed by the element we are assigning this callback to, and the event we are watching for. Example: `onInputChange`, `onButtonClick`
+  - Another convention is to use `handle` instead of `on`, i.e `handleInputChange`. As in this function is reponsible for _handling_ such an event. (I think I prefer this!)
+
+### Alternate Event Handler Syntax
+
+An alternate syntax is frequently used in documentations and other projects, so it's important to know.
+
+```js
+<input type="text" onChange={event => console.log(event.target.value)}>
+```
+
+This way we avoid defining a seperate method on the class. This arrow function way of working with event handlers is especially concise if our logic only contains one line of code.
+
+### Uncontrolled vs Controlled Elements
+
+We prefer to create **Controlled** elements over **Uncontrolled**. When handling inputs in an Uncontrolled manner, React only has an idea of an input's value for a brief moment (it is the HTML DOM that's keeping track of it, rather than React).
+
+_Uncontrolled_ way to do events: `<input onChange={<methodWeDefine>}>`.
+The _Controlled_ way: `<input value={this.state.someProp} onChange={(event) => this.setState({ someProp: event.target.value })}`
+
+In our project, the flow when using a _Controlled_ input is:
+
+- User types in input -> Callback gets invoked (onChange) -> We call setState with the new value -> Component rerenders -> **Input is told what its value is (coming from state)**
+
+Using an _Uncontrolled_ input, if we asked the question "What is the value of the input _right_ now?", the only way to answer that would be to reach into the DOM and pull out that value. The only time our React code knew what that value was is when the callback method was running, and we accessed `event.target.value`. At any other time, the 'source of truth' was found only inside our HTML document, and not React. With React, we do _not_ want to store information inside our HTML elements. We want to centralize all our information in our React component. So even though our input knows its value already, we tell React to set the value prop in order to ensure things are controlled.
+
+### Handling Form Submittal
+
+The default behavior when submitting a form is to send the form data to some backend server. But here, we do not want that to happen. So we make sure to call event.preventDefault when handling onSubmit events on Forms. We use React's built-in `onSubmit` prop to link it to an event handler:
+
+```js
+handleFormSubmit(event) {
+  event.preventDefault();
+
+  console.log(this.state.term); // This will throw an error -- we find out why next lecture
+}
+
+<form onSubmit={handleFormSubmit}>
+  <input />
+</form>
+```
+
+### Understanding `this` in JavaScript
+
+Why were we getting an error when calling `this.state.term` in our event handling function?
+
+- The error: "Cannot read property "state" of undefined.
+- It is the most common React error message!
+- To understand the error, we have to understand the `this` keyword in JavaScript
+
+What is `this` used for in a class?
+
+- Inside of any code in our class, we can reference keyword `this`. It is a reference back to the class itself. So then we can get direct access to our properties (state, render, handleFormSubmit, etc).
+
+How is the value of `this` determined in a function?
+
+- **IMPORTANT**: Whenever we want to figure out what the value of `this` is inside a method on a class, we do not look at the method itself, but rather on where we call the method.
+- We find the function name, look to the left (at the ".") and then the variable on the left-hand side. _That_ is what `this` is equal to.
+- Basically what is happening is when our event callback gets invoked, there is no object it is being called on. It is not being called as `myComponent.handleFormSubmit()` for instance, but rather just `handleFormSubmit`. So there is no `this`!
+- It's like it's being set up as follows:
+
+```js
+const onSubmit = handleFormSubmit;
+onSubmit(); // There is nothing it's being called from - no <variableName>.onSubmit()
+```
+
+### Solving Context Issues
+
+There are _many_ different ways to solve the `this` issue.
+
+1. **Binding** the function, in the constructor:
+
+```js
+constructor() {
+  this.handleFormSubmit = this.handleFormSubmit.bind(this);
+}
+```
+
+Calling `.bind` produces a new version of that function. This new function is "fixed" with the correct value for `this`. We then overwrite the "broken" function with that version. This is a rather legacy solution, but still fairly common.
+
+2. Turn the function definition into an ES2015 **arrow function**!
+
+```js
+const handleFormSubmit = (event) => {};
+```
+
+- Arrow functions automatically bind the value of `this`
+
+3. Arrow function _directly_ into the prop that is making a callback to that function:
+
+```js
+handleFormSubmit(event) {
+  console.log(event.target.value);
+}
+<form onSubmit={(event) => this.handleFormSubmit(event)}>
+```
+
+### Communicating Child to Parent
+
+We want our SearchBar to do only a specific task. Does it need to be handling the API request? We should make that the job of the parent, App. But how do we get the search term from our child, SearchBar, to our parent? Props can only go _down_ the hierarchy. But the App is _up_.
+
+The solution is to pass a prop down from the App to the SearchBar. This prop will be a callback method (onSearchSubmit). The app will pass this as a callback method to the SearchBar, and the SearchBar will hold onto it and call upon it (with the search term) when the form is submitted.
+
+This is basically what is happening with the built-in `onChange`, `onSubmit` etc event handlers. But now we need to do the full process ourselves.
+
+### Invoking Callbacks in Children
+
+```js
+// App.js
+handleleOnSubmit(term) { console.log(term) }
+
+render() {
+  return (
+    // This prop can be called ANYTHING we want!
+    <SearchBar onSearchSubmit={handleOnSubmit}/>
+  )
+}
+
+// SearchBar.js
+const handleOnSubmit(event) => {
+  this.props.onSearchSubmit(this.state.term);
+}
+
+render() {
+  return <form onSubmit={this.handleOnSubmit}>
+  // etc
+}
+```
+
 ## Section 8 - Making API Requests with React
 
 ### Fetching Data
