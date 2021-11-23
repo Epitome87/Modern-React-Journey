@@ -950,6 +950,10 @@ render() {
 
 ## Section 8 - Making API Requests with React
 
+##### `Originally Started: 11/22/21`
+
+In this section, we are still working on the app from the previous section.
+
 ### Fetching Data
 
 We will make use of the Unsplash API.
@@ -977,6 +981,7 @@ This section covers how to work with the Unsplash API and axios.
 
 ```js
 onSearchSubmit(term) {
+  // Async request
   axios.get('https://api.unsplash/com/search/photos', {
     params: { query: term },
     headers: {
@@ -987,6 +992,84 @@ onSearchSubmit(term) {
 ```
 
 The result is some JSON that contains the result of our request for the search term.
+
+### Handling Requests with Async Await
+
+Timeline for Picture Search App
+
+Component renders itself one time with no list of images -> onSearchSubmit method called -> Request made to Unsplash -> ...wait... -> Request complete
+-> Set image data on state of App component -> App component rerenders and shows images
+
+We will have an ImageList component render the images, rather than giving App the responsibility of that.
+
+To make our AJAX call, we have two methods when working with axios.get, which returns a Promise.
+
+1. Promise-Based (Chaining "then" Solution)
+
+```js
+axios
+  .get('https://api.unsplash/com/search/photos', {
+    params: { query: term },
+    headers: {
+      Authorization: 'Client-ID <OurAPIAccessKey>',
+    },
+  })
+  .then((reponse) => console.log(reponse.data.results));
+```
+
+2. Async Await Solution
+
+```js
+async handleSearchSubmit(term) {
+  const reponse = await axios.get(...etc...);
+  console.log(response.data.results);
+}
+```
+
+### Setting State After Async Requests
+
+- When having an object or array as a piece of state, it's best to initialize the state to an empty object or empty array. This avoids potential errors, where we are trying to call properties on an object or methods on an array (like array.map).
+
+After our AJAX call returns a response, we want to set state that updates an array of images.
+
+```js
+// In handleSearchSubmit, after call to axios.get
+this.setState({ images: response.data.results });
+```
+
+But this gives an error due to `this`! We need to bind things properly...
+
+### Binding Callbacks
+
+To fix this, we use an arrow function, like before:
+
+```js
+handleSearchSubmit = async (term) => {};
+```
+
+### Creating Custom Clients
+
+This section is mostly code clean-up. We create a new folder called "api", along with an "unsplash.js" file. We put our code related to making our Unsplash AJAX call here.
+We can use the fact that axios lets us to set up a pre-configured instance that has default properties for headers / params / where it's making a request to.
+
+```js
+// In api/axios.js
+// Creates instance of a customized axios client
+export default axios.create({
+  baseURL: "https://api.unsplash.com",
+  headers: {
+    Authorization: "Client-ID <OurUnsplashID>
+  }
+});
+
+// In App.js
+import unsplash from "../api/unsplash";
+
+handleFormSubmit = async term => {
+  conse response = await unsplash.get("/search/photos", { params: { query: term }});
+  this.setState({images: response.data.results});
+}
+```
 
 ## Section 9 - Building Lists of Records
 
