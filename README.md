@@ -1152,7 +1152,127 @@ But we get a Warning about each child in an array or iterator not having a uniqu
 
 ## Section 10 - Using Ref's for DOM Access
 
+##### `Originally Started: 11/22/21`
+
+### Grid CSS
+
+We now focus on styling the app, to create "Version 2" of it! Styling in React can be done by creating a CSS file and importing it into the component we wish to utilize it (although technically the CSS file's classes become accessible for all components).
+
+```js
+// ImageList.css
+.image-list {
+  display: grid;
+}
+
+// ImageList.js component
+import "./ImageList.css"
+
+// In render return:
+<div className="image-list"></div>
+```
+
+A lot of this section is rather CSS-heavy, focusing on the Grid system. I won't be taking many notes on this stuff.
+
+### Creating an ImageCard Component
+
+```js
+// Create ImageCard. Self-explanatory so won't put code here
+
+// Rather than return an img in ImageList, we now return our Component:
+return <ImageCard key={image.id} image={image} />;
+```
+
+**IMPORTANT ASIDE**: Seems we don't need to define a constructor to get access to the props object. Was this mention earlier? Seems we only define a constructor if we want to initialize state.
+
+### Accessing the DOMN with Refs
+
+For Version 2 of our app, we want _dynamically_ give it enough space (margin) to be rendered nicely.
+
+- Let the ImageCard render itself and its image
+- Reach into the DOM and figure out the height of the image
+- Set the image height on state to get the component to re-render
+- When re-rendering, assign a `grid-row-end` to make sure the image takes up the appropriate space
+
+With traditional JavaScript, we'd simply do a `document.querySelector("img").clientHeight` to figure out the image height. But how do we access DOM elements directly using React? We use **Refs**
+
+React Ref System
+
+- Gives access to a single DOM element
+- We create **refs** in the constructor, assign them to instance variables, then pass to a particular JSX element as props
+
+### Accessing Image Height
+
+1. Create an instance variable that's equal to `React.createRef()`
+2. In the JSX element we want to have a reference to, we set its `ref` prop to this instance variable.
+
+```js
+constructor(props) {
+  super(props);
+
+this.imageRef = React.createRef();
+}
+
+// In render()
+return (
+  <img ref={this.imageRef} src={urls.regular} />
+)
+```
+
+Now any place inside this component we can reference _this.imageRef_ and get access to the DOM node.
+**Remember** the _img_ tag above is NOT a DOM element (it eventually will be turned into one). It is a JSX element. So we need this ref.
+
+The ref itself is a JavaScript object that has a `current` property. This property references a DOM node.
+
+Going back to our image height in vanilla JavaScript example, we could now do: `this.imageRef.current.clientHeight`
+We do this, but when we console.log the value in componentDidMount, we get 0??? Why is this happening?
+
+- In our browser, our dev console is extremely fancy. The console does not yet know what data is inside our image. The console only knows what the height is once we expect that object and expand its properties. At that moment, Chrome looks at that DOM node, pulls its info out, and prints it to the console. So when we expand to see certain properties, we are seeing that information generated at that _moment_.
+- When our component first renders, we print out the height of the image. But at this point, the image has not actually loaded yet. It has not finished downloading its image. So the img tag has a height of 0 pixels.
+
+### Callbacks on Image Load
+
+To fix the above problem, we need to access our ref and add an event listener to it.
+
+```js
+componentDidMount() {
+  this.imageRef.current.addEventListener("load", () => this.setSpans);
+}
+
+setSpans = () => {
+  console.log(this.imageRef.current.clientHeight);
+}
+```
+
+- This is a basic, plain HTML / JS event listener. Not React.
+
+### Dynamic Spans
+
+```js
+setSpans = () => {
+  const height = this.imgeRef.current.clientHeight;
+  const spans = Math.ceil(height / 10);
+  this.setState({ spans });
+};
+
+// In render()
+<div style={{ gridRowEnd: `span ${this.state.spans}` }}> </div>;
+```
+
+A lot of the work throughout the past few lectures were just so we can create dynamic values for each item's `grid-row-end` property. This allows very nice, tight tiling of images of different sizes in our ImageList. It's a nice effect to learn, so worth investigating and incorporating in future projects. But I did not take too many notes on the Grid / CSS-specific dealings.
+
+### App Review
+
+Nothing new to note, but this is a very good video lecture to refer back to for a quick refresher on the prior 3 sections!
+
 ## Section 11 - Let's Test Your React Mastery!
+
+##### `Originally Started: 11/22/21`
+
+**TODO** Come back later and take detailed notes.
+
+This is an optional section, as we are going to build an app that isn't too different from the last one. We will be building an app where we can search for videos, which will then be retrieved from the YouTube API and rendered onto the screen. There are some additions here and there, but it's mostly a project to help solidify the basics learned thus far.
+
+I will be skipping taking notes on it (for now), but may come back to do so in the future. I have already completed the project taught during this section.
 
 ## Section 12 - Udnerstanding Hooks in React
 
