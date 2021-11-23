@@ -1152,9 +1152,839 @@ But we get a Warning about each child in an array or iterator not having a uniqu
 
 ## Section 10 - Using Ref's for DOM Access
 
+##### `Originally Started: 11/22/21`
+
+### Grid CSS
+
+We now focus on styling the app, to create "Version 2" of it! Styling in React can be done by creating a CSS file and importing it into the component we wish to utilize it (although technically the CSS file's classes become accessible for all components).
+
+```js
+// ImageList.css
+.image-list {
+  display: grid;
+}
+
+// ImageList.js component
+import "./ImageList.css"
+
+// In render return:
+<div className="image-list"></div>
+```
+
+A lot of this section is rather CSS-heavy, focusing on the Grid system. I won't be taking many notes on this stuff.
+
+### Creating an ImageCard Component
+
+```js
+// Create ImageCard. Self-explanatory so won't put code here
+
+// Rather than return an img in ImageList, we now return our Component:
+return <ImageCard key={image.id} image={image} />;
+```
+
+**IMPORTANT ASIDE**: Seems we don't need to define a constructor to get access to the props object. Was this mention earlier? Seems we only define a constructor if we want to initialize state.
+
+### Accessing the DOMN with Refs
+
+For Version 2 of our app, we want _dynamically_ give it enough space (margin) to be rendered nicely.
+
+- Let the ImageCard render itself and its image
+- Reach into the DOM and figure out the height of the image
+- Set the image height on state to get the component to re-render
+- When re-rendering, assign a `grid-row-end` to make sure the image takes up the appropriate space
+
+With traditional JavaScript, we'd simply do a `document.querySelector("img").clientHeight` to figure out the image height. But how do we access DOM elements directly using React? We use **Refs**
+
+React Ref System
+
+- Gives access to a single DOM element
+- We create **refs** in the constructor, assign them to instance variables, then pass to a particular JSX element as props
+
+### Accessing Image Height
+
+1. Create an instance variable that's equal to `React.createRef()`
+2. In the JSX element we want to have a reference to, we set its `ref` prop to this instance variable.
+
+```js
+constructor(props) {
+  super(props);
+
+this.imageRef = React.createRef();
+}
+
+// In render()
+return (
+  <img ref={this.imageRef} src={urls.regular} />
+)
+```
+
+Now any place inside this component we can reference _this.imageRef_ and get access to the DOM node.
+**Remember** the _img_ tag above is NOT a DOM element (it eventually will be turned into one). It is a JSX element. So we need this ref.
+
+The ref itself is a JavaScript object that has a `current` property. This property references a DOM node.
+
+Going back to our image height in vanilla JavaScript example, we could now do: `this.imageRef.current.clientHeight`
+We do this, but when we console.log the value in componentDidMount, we get 0??? Why is this happening?
+
+- In our browser, our dev console is extremely fancy. The console does not yet know what data is inside our image. The console only knows what the height is once we expect that object and expand its properties. At that moment, Chrome looks at that DOM node, pulls its info out, and prints it to the console. So when we expand to see certain properties, we are seeing that information generated at that _moment_.
+- When our component first renders, we print out the height of the image. But at this point, the image has not actually loaded yet. It has not finished downloading its image. So the img tag has a height of 0 pixels.
+
+### Callbacks on Image Load
+
+To fix the above problem, we need to access our ref and add an event listener to it.
+
+```js
+componentDidMount() {
+  this.imageRef.current.addEventListener("load", () => this.setSpans);
+}
+
+setSpans = () => {
+  console.log(this.imageRef.current.clientHeight);
+}
+```
+
+- This is a basic, plain HTML / JS event listener. Not React.
+
+### Dynamic Spans
+
+```js
+setSpans = () => {
+  const height = this.imgeRef.current.clientHeight;
+  const spans = Math.ceil(height / 10);
+  this.setState({ spans });
+};
+
+// In render()
+<div style={{ gridRowEnd: `span ${this.state.spans}` }}> </div>;
+```
+
+A lot of the work throughout the past few lectures were just so we can create dynamic values for each item's `grid-row-end` property. This allows very nice, tight tiling of images of different sizes in our ImageList. It's a nice effect to learn, so worth investigating and incorporating in future projects. But I did not take too many notes on the Grid / CSS-specific dealings.
+
+### App Review
+
+Nothing new to note, but this is a very good video lecture to refer back to for a quick refresher on the prior 3 sections!
+
 ## Section 11 - Let's Test Your React Mastery!
 
+##### `Originally Started: 11/22/21`
+
+**TODO** Come back later and take detailed notes.
+
+This is an optional section, as we are going to build an app that isn't too different from the last one. We will be building an app where we can search for videos, which will then be retrieved from the YouTube API and rendered onto the screen. There are some additions here and there, but it's mostly a project to help solidify the basics learned thus far.
+
+I will be skipping taking notes on it (for now), but may come back to do so in the future. I have already completed the project taught during this section.
+
 ## Section 12 - Udnerstanding Hooks in React
+
+##### `Originally Started: 11/22/21`
+
+### React Hooks
+
+We have learned a lot about Class-based components. In this section we will now dive deeper into Functional components and make use of their Hooks.
+
+Hooks System
+
+Hooks are a way to write reusable code, instead of more classic techniques like inheritance.
+
+- **useState**: Function that lets you use **state** in a functional component
+- **useEffect**: Function that lets you use _something like_ **lifecycle methods** in a functional component
+- **useRef**: Function that lets you create a _ref_ in a function component
+
+Primitive Hooks (10 functions included with React)
+
+- useState, useEffect, useContext
+- useReducer, useCallback, useMemo,
+- useRef, useImperativeHandle, useLayoutEffect,
+- useDebugValue
+
+We will learn a lot of these Hooks over time, and eventually make use of them to write our own _custom_ hooks!
+
+### App Overview
+
+As we learn about React Hooks, we will be building a project along the way. It is a Widget application that will include multiple components:
+
+- An Accordion component
+- A Wikipedia API search component
+- A Dropdown item selection component
+- A Google Translate API component
+
+We will then wrap the application up by building our own navigation using JavaScript and React - without a third-party library like React Router. This will be used to navigate between the different widget components that were built.
+
+### App Architecture
+
+How are we going to architect our Widgets project?
+
+1. App component: Governs and coordinates information across the entire application
+
+- This will pass an **items** state down as a prop to an Accordion component
+
+2. Accordion: In charge of showing an accordion (questions and answers that can be collapsed)
+
+- Uses the items prop to decide which set of questions and answers to display
+
+- Items prop: Array of objects
+
+  - Object has a title and content property.
+
+- The only state we need to keep track of is which question is currently expanded.
+  - We should keep this state in the Accordion component, as no other part of our App component cares about this information
+
+### Communicating the Items Props
+
+```js
+// App.js
+const items = [ { title: , content: }, { title: , content: }, { title: , content: } ]
+
+// Pass down as props
+<Accordion items={items} />
+```
+
+### Building and Styling the Accordion
+
+In this lecture we just map over the items and render them in a list. Nothing new! We also hook up the Semantic UI library so we can style the app along the way.
+
+We come across an interesting issue where some styling is messed up, because Semantic UI is not expecting us to wrap everything in an outer div -- but React requires us to do so when returning JSX. To fix this, we can convert the div to a **React.Fragment**:
+
+```js
+return <React.Fragment key={item.title}>// Etc...</React.Fragment>;
+```
+
+Now it is rendered without an extra element.
+
+### Helper Functions in Function Components
+
+Stephen makes a big deal about the less-organized, messier code caused by using Functional components. But the code for using a helper function here is exactly the same as in a Class-based component, so I'm confused. We simply define our function inside the Component, _exactly_ like we did in a Class-based component. If we are using the arrow syntax way, it is literally exactly the same -- just no need for the `this` keyword (though this was dropped for Class-based ones in later JavaScript).
+
+### Introducing useState
+
+Let's take a look at the steps to use the **useState** hook -- which is a Functional-component's replacement for the state object.
+
+- We import `{ useState } from "react";`
+- We initialize the state: `const [activeIndex, setActiveIndex] = useState(null);`
+- We update the value of our piece of state: `setActiveIndex(index);`
+- We reference our value: `<h1>{activeIndex}</h1>
+
+### Understanding useState
+
+- We use **array destructuring** when initializing our state.
+  - It's a quick way to let us set up an array while simultaneously letting us set a variable that points to the 1st and 2nd element of the array, respectively. When we call _useState_ we get back an array with two elements. The first element is the piece of state we are keeping track of. The second element is a function that we call to update that piece of state. This function is commonly referred to as the state's **setter** method.
+- In the _useState_ call, the argument we pass is the initial value for the piece of state we are creating.
+- It is convention to prefix the function to change the piece of state with "set"
+
+Perhaps the most confusing thing with a Function component is the inability to change multiple pieces of state at once. With a Class, we simply called setState with multiple object properties and their updated values. For Function components, we have to call useState for each piece of state, and then call all their respective set methods one at a time.
+
+### Setter Functions
+
+When we call a setter function, the component will re-render. At this point, the default value we initialized our state with will no longer be used; it will be updated to the value we passed to the setter.
+
+### Expanding the Accordion
+
+In this lecture, we simply use conditional checks to see which accordion item is the currently selected one and give it a Semantic UI classname that allows it to be exanded / collapsed.
+
+### Creating Additional Widgets
+
+With the Accordion done, we can focus on other random widgets for our Widget app that will help us learn various Hooks.
+
+- A search widget - useState and useEffect
+- A dropdown widget - useState, useEffect, useRef
+- Language translater widget - useState, useEffect, useRef
+
+We will then eventually wire them together using some simple navigation.
+
+### The Search Widget Architecture
+
+We will use the Wikipedia API for our searches. We make a simple _get_ request to some endpoint -- no auth or access keys needed!
+We will build a single Search component, rather than breaking it into smaller parts. It will have _term_ and _results_ as state.
+
+### Scaffolding the Search Widget
+
+More basic stuff. We create the skeleton of a Search component, export / import it, and render the Search element in our App's render method.
+
+### Text Inputs with Hooks
+
+Nothing new, we create a controlled input for our search:
+
+```js
+// In Search.js
+const [term, setTerm] = useState("");
+
+// In render
+<input value={term} onChange={event => setTerm(event.target.value)}>
+```
+
+### When do We Search?
+
+Where are we going to write the code to make a request to the Wikipedia API? Two potential options:
+
+- Option #1:
+  User types input -> onChange event handler called -> We take value from input and make request to API -> ...wait..
+  -> Get response -> Udpate _results_ piece of state -> Component re-renders, we show list of results
+
+- Option #2:
+  User types input -> onChange event handler called -> Update _term_ piece of state -> Component re-renders -> **We add code to detect that _term_ has changed!**
+  -> Make request to API -> ...wait... -> Get response -> Update _results_ piece of state -> Component re-renders, we show list of results
+
+Pros and Cons of Options
+
+- Option #1:
+
+  - Search instantly when onChange event triggers
+  - Tightly couples onChagne event with search
+
+- Option #2:
+  - Search when _term_ piece of state changes
+  - Can easily trigger a search when other parameters change! (Like if we wanted to add the ability to search by category)
+  - Easier to extract code out into a more reusable function!
+
+We will go with Option #2, and the **useEffect** hook will allow us to do so!
+
+### The useEffect Hook
+
+- Allows function components to use _something like_ lifecycle methods
+- We configure the hook to run some code automatically in one of three scenarios:
+  - 1 When the component is rendered for the _first time only_
+  - 2 When the component is rendered _for the first time and whenever it re-renders_
+  - 3 When the component is rendered _for the first time and (whenever it re-renders and some piece of data has changed)_
+
+```js
+import { useEffect } from 'react';
+
+useEffect(() => {
+  console.log('I was executed!');
+});
+```
+
+- The second argument of _useEffect_ controls when the code gets executed.
+  - Empty array: Run at initial render
+  - Array with one or more elements inside of it: Run at initial render. Run after every render _if_ _any_ data in array has changed since last render
+  - No argument: Run at initial render. Run after every re-render.
+    - We will rarely use _useEffect_ this way, typically
+
+### Async Code in useEffect
+
+We want to use _useEffect_ to make our Wikipedia API call, both on initial render and every time our _term_ changes. But there's one issue: React does not allow us to mark the function we pass into _useEffect_ as async -- which is the type of function ours needs to be! There are 3 ways to resolve this:
+
+1. Recommended approach. We create a helper function and then call it after:
+
+```js
+useEffect(() => {
+  const search = async () => {
+    await axios.get('whatever');
+  };
+
+  search();
+}, [term]);
+```
+
+2. Define a function and immediately invoke it:
+
+```js
+useEffect(() => {
+  (async () => {
+    await axios.get('whatever');
+  })();
+}, [term]);
+```
+
+3. Just revert back to using normal Promises:
+
+```js
+useEffect(() => {
+  await axios.get('whatever').then((response) => {
+    console.log(response.data);
+  });
+}, [term]);
+```
+
+### Executing the Request from useEffect
+
+Let's make our actual Wikipedia API request! Remember, when we pass axios.get a `params` object, whatever key/value pairs we add to it, axios will append to the query string and append to the URL automatically.
+
+```js
+useEffect(() => {
+  const search = async () => {
+    await axios.get('https://en.wikipedia.org/w/api.php', {
+      params: {
+        action: 'query',
+        list: 'search',
+        origin: '*',
+        format: 'json',
+        srsearch: term,
+      },
+    });
+  };
+
+  search();
+}, [term]);
+```
+
+### Default Search Terms
+
+```js
+// Add state for results
+const [search, setSearch] = useState("Programming");
+const [results, setResults] = useState([]);
+
+// In our useEffect API call:
+const search = ...call to axios...
+setResults(search.data.query.search); // Arra of search results from wiki
+```
+
+We give _search_ state a default value that isn't empty, since Wikipedia doesn't like that.
+
+### List Building!
+
+Just more of the fundamentals - rendering a list of elements. For our Wikipedia results, we render `result.title` and `result.snippet`, as those are the pieces of information returned through our axios call that we are interested in.
+
+_Oh no!_ We are rendering results that have HTML code in them. This looks ugly, so we need to find a way to remove it.
+
+### XSS Attacks in React
+
+We can get rid of the HTML span elements wrapping our results in two ways.
+
+- Find every instance of the span and remove the opening and closing tags.
+- Taking the HTML Wikipedia gives us and rendering it out as actual HTML.
+
+We'll try option 2. But we have a string that we want to _turn into_ JSX. How do we do this?
+
+- Purposly "hidden" feature in React we can use.
+- `dangerouslySetInnerHTML` prop on an HTML element. We set it equal to an object with a key of `__html: result.snippet`
+
+```js
+<div>{result.title}</div>
+<span dangerouslySetInnerHTML={{ __html: result.snippet }}></span>
+```
+
+This renders the Wikipedia result correctly. But it's not recommended!
+
+SSX is a cross-site scripting attack. This could allow some mailicious code to execute inside of our app. Our axios call could return some embedded HTML, which has some JavaScript code that executes. Do we trust Wikipedia enough to fix our article rendering bug this way?
+
+### Linking to a Wikipedia Page
+
+We ad an anchor element to each article result that's being rendered. We give it a href that will link to that Wikipedia result.
+
+```js
+<a href={`https://en.wikipedia.org?curid=${result.pageid}`}>Visit Article</a>
+```
+
+### Only Search with a Term
+
+We are getting an error when we are searching with an empty string. We fixed this when the Component first runs (by giving it initial search term state), but if the user manually deletes his search result completely, we get the error again. We fix this by just checking `if (term) search()`
+
+### Throttling API Requests
+
+We are making an API request each time we type a letter into the search bar. We should set a delay on that.
+We'll allow the user to type as much as they please, and wait for a period of 500ms where no new input has occured. At this point we make our API call.
+
+The logic we want may look like:
+
+Input Change -> Set a timer to Search in 500ms
+Input Change -> Cancel previous timer. Set a timer to Search in 500ms
+Input Change -> Cancel previous timer. Set a timer to Search in 500ms
+...500ms has passed...
+No additional changes! -> Last timer created executes!
+
+The act of delaying in this manner is called **Debouncing**
+
+### Reminder on setTimeout
+
+To achieve our desired throttling, we will use the `setTimeout` function that plain JavaScript provides.
+
+```js
+// In our axios.get call
+const timeoutId = setTimeout(() => {
+  if (term) search();
+}, 500);
+```
+
+To cancel our timer, we need to call `clearTimeout()` and pass it a reference to the `setTimeout` call we made. But how can we somehow get this timer ID and cancel it the next time the user types something in?
+
+### useEffect's Cleanup Function
+
+We _could_ use a piece of state to cancel this timeout timer, but we can also use the power of **useEffect**! In it, we are allowed to return one possible value from the function we pass it: another function. It is here we can do any cleanup.
+
+```js
+useEffect(() => {
+  return () => {};
+}, [term]);
+```
+
+When we return this function, React will keep a reference to it. And it will call it at some future point in time.
+
+- When our comp first renders, the overall arrow function is invokved, and we return our cleanup arrow function.
+- Then, any time we run the arrow function again, React calls the cleanup it got from the last time useEffect ran, then it calls the overall arrow function again.
+
+Initial Component Render -> Func provided to useEffect called. Return a cleanup function (and hold onto it)
+Re-render -> Invoke the cleanup function! Then Func provided to useEffect called again. Return a cleanup function (and hold onto it).
+
+### Implementing a Delayed Request
+
+```js
+useEffect(() => {
+  const timeoutId = setTimeout(() => {
+    if (term) search();
+  }, 500);
+  return () => {
+    clearTimeout(timeoutId);
+  };
+}, [term]);
+```
+
+Note that `clearTimeout` is called with the timeroutId of the _previous_ timer. This is why this cleanup approach for our setTimeout works.
+
+The downside with our approach is that ther is now no initial search until 500ms after the app loads...
+
+### Searching on Initial Render
+
+We fix this by detecting whether or not this is the first time the component is being rendered.
+
+```js
+if (term && !results.length) search();
+else {
+  // setTimeout logic, same as it was in last code snippet
+}
+```
+
+### Edge Case When Clearing Out Input Form
+
+In the upcoming lecture, we will be adding a second useEffect to handle debouncing. In order to resolve the case where a user will clear out the input-form, we need to add a conditional (similar to the issue described in this earlier lecture). Look for solution a few lectures down.
+
+### Optional Video - Fixing a Warning
+
+Although our Search component is working, we have a warning in our console: `react Hook useEffect has a missing dependency: "results.length"`
+
+**TODO**: I'm skipping this video for now.
+
+Whenever we make reference to a piece of state or props inside _useEffect_, React (ESLint, really) wants us to list those references as dependencies.
+So can we just add in results.length and fix this? Well, the warning went away. But now we have a bug: When we first load the app, we get _two_ requests when we only want one.
+
+Why does adding result.length lead to this second request? Well, after our initial API request, _results_ gets updated, which causes a re-render. At this point the length of results has also changed, and since it is listed as a dependency we re-run the _useEffect_ function.
+
+To actually fix this, we have to change our component by quite a bit.
+
+- Intial Component Render -> term === "programming", debouncedTerm === "programming"
+  - useEffect for debouncedTerm runs
+  - Initial data fetch complete
+- User Types Something -> Immediately update _term_ -> term === "programming bo"
+  - Set a timer to update debouncedTerm
+- User Tpes Something -> Cancel previous timer
+  - Immediately update _term_ -> term === "programming books"
+  - Set a timer to update debouncedTerm
+- User Stops Typing 500ms -> debouncedTerm updated -> debouncedTerm === "programming boks"
+- State update causes re-render -> useEffect watching "debouncedTerm" runs
+  - Data fetched!
+
+Final solution:
+
+```js
+const Search = () => {
+  const [term, setTerm] = useState('programming');
+  const [debouncedTerm, setDebouncedTerm] = useState('programming');
+  const [results, setResults] = useState([]);
+
+  // Runs when term changes (each onChange of search input)
+  // Queue up a state change to debouncedTerm, but cancel if not enough time passes, queue up new timer
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      // We're going to set debounced ONLY if enough time passes
+      setDebouncedTerm(term);
+    }, 1000);
+
+    return () => clearTimeout(timerId);
+  }, [term]);
+
+  // Runs when debouncedTerm changes
+  useEffect(() => {
+    const search = async () => {
+      const { data } = await axios.get('https://en.wikipedia.org/w/api.php', {
+        params: {
+          action: 'query',
+          list: 'search',
+          origin: '*',
+          format: 'json',
+          srsearch: debouncedTerm,
+        },
+      });
+      setResults(data.query.search);
+    };
+    if (debouncedTerm) {
+      search();
+    }
+  }, [debouncedTerm]);
+};
+```
+
+Note that if we type, say, "Flower" as the search term, and change it a little but quickly change it back to "Flower" (all before the debounce period is over), and then wait for the debounce to occur, there is no re-render. This is because React is seeing that the debouncedTerm state is the same value as previously, so it does not need to update it (remember the condition for the second useEffect argument -- whenever a re-render occurs **AND** the depency has **changed**)
+
+### Dropdown Architecture
+
+We will create a very simple, re-usable Dropdown widget. It will have a dropdown of color choices, where selecting one simply changes some text accordingly. Here's what it might look like:
+
+- App: Will have a list of options. Provided as prop to the Dropdown component.
+  - State: _selection_ which will record what the currently selected option is. Also provided as a prop to the Dropdown.
+  - Options: Array of objects: { label: "A Shade of Blue", value: "blue" }
+- Dropdown
+
+### Scaffolding the Dropdown
+
+We declare an array of _options_. We can put this anywhere -- inside or outside -- our app component since its value will never change.
+We pass this array down to the Dropdown as an _options_ prop.
+
+### A lot of JSX
+
+In the Dropdown, we simply map over the _options_ prop and, using Material UI, give it a series of divs with appropriate className properties. For now we hard-code some rendered texts, but later we will refactor it to be more re-usable. Lots of styling with CSS; nothing new in terms of React.
+
+### Selection State
+
+Here we just set up a _selected_ state in App.js, and pass it (along with a callback to set it when it is changed, and a list of dropdown options) to the Dropdown component. Nothing new or complex. Give each mapped options item in Dropdown an _onClick_ event handler that calls the callback prop passed to Dropdown, which sets it as the newly-selected option.
+
+### Filtering the Option List
+
+Here we learn that _null_ in React (when used when returning JSX is expected) means do not render _anything_. We use this fact to skip rendering a mapped list item whos _value_ property is equal to the currently selected option's value -- as it would be odd to see the current selection as an option in the dropdown.
+
+### Hiding and Showing the Option List
+
+In order to toggle certain classes required for Semantic UI to show / hide the Dropdown appropriately, we add a new piece of state to Dropdown: _open_. We give the Dropdown an _onClick_ handler that toggles the value of _open_, which in turn is used as a conditional check to add some classes to various divs of the Dropdown. Mostly Semantic UI related, so I won't be too detailed on the notes.
+
+### Err...Why is this Hard!
+
+To close our Dropdown, we can't click _outside_ the Dropdown to close it (as is pretty standard user experience). How do we accomplish this, and why is it so challenging? We will spend the next few lectures covering why.
+
+- Dropdown component can only set up event handlers _easily_ (using JSX props) on elements it creates. The Dropdown cannot set up an event handler on the _body_, for example, or any other Component or div that might exist inside of our app. We want to listen to click events being issued outside of the Dropdown.
+
+### Reminder on Event Bubbling
+
+Whenever a user clicks on an item, the event does not stop there. Instead, the event object travels up to the next parent element, and if that element has a click event handler on it as well, it is automatically invoked. The event object then goes up to the next parent element, and this process repeats, calling each click event along the way. This is **event bubbling** - as the event is bubbling up the DOM. This is why when we click our desired Dropdown option from the list, it is set as the _selected_ option (due to its onClick handler's logic), but also the Dropdown closes (which is not part of its onClick logic, but rather one if its parent's, being called automatically).
+
+### Applying What We've Learned
+
+Why is the concept of _event bubbling_ relevant to our problem here?
+
+Let's recap what we have so far:
+
+- The Dropdown needs to detect a click event on _any element_ besides one it created
+- The Dropdown has a hard time setting up event handlers on elements that it does not create
+  - Not impossible, just challenging!
+- Event bubbling is a thing
+
+The solution?
+
+- The Dropdown can set up a manual event listener (without React) on the _body element_
+- A click on _any element_ will bubble up to the body, calling its _onClick_ handler!
+
+```js
+document.body.addEventListener('click', () => {});
+```
+
+### Binding an Event Handler
+
+Where can we set up this event lisener on the body? In a _useEffect_ call in our Dropdown.
+
+```js
+useEffect(() => {
+  document.body.addEventListener(
+    'click',
+    () => {
+      setOpen(false);
+    },
+    { capture: true }
+  );
+}, []);
+```
+
+This looks correct, but now when we click on the Dropdown and click on an option, it stays open. It _only_ closes when an outside element is clicked. Why is this?
+
+### Why Stay Open?!
+
+Our DOM looks like this (pointing out only the 3 elements with onClicks): body -> Dropdown.selection -> Dropdown.selection.menu.item
+So logically, we may think that clicking on item would result in this order of the event bubbling: item -> selection -> body.
+
+But let's observe the order each of our _onClick_ events is being invoked (we console.log each):
+
+- Body -> Item -> Dropdown!
+
+Reason for this?
+
+- All the event listeners wired up manually (using _addEventListener_) get called _first_!
+- _After_ all those are called, the React event listeners get called, from most-child element to most-parent (as expected)
+
+So in our Dropdown, we first set _open_ to false (in body), then update our currently selected option (in item div), and finally toggle the value of _open_ (in selection div). So we are basically closing the Dropdown and quickly toggling it, thus re-opening it!
+
+### Which Element Was Clicked?
+
+To address this, now understanding the actual problem, we have two scenarios to consider:
+
+- Scenario #1: User clicks on an element that is created by Dropdown component -> If a user clicks on one of these elements, then we probably _don't_ want the body event listener doing anything.
+- Scenario #2: User clicks on an element besides the ones created by the Dropdown -> If a user clicks on any of these elements, we _do_ want the body event listener to close the dropdown.
+
+Whenever a user clicks on an element, we are going to allow that event to propagate around our entire DOM structure. It's technically possible to cancel event bubbling, but that is bad practice! Instead, we will just conditionally see if we should close the dropdown or not, based on if we're clicked inside or outside the Dropdown.
+
+But how do we figure this out?
+
+- Easy to figure out which element was clicked: `event.target` in our event handler.
+- But how to figure out if it's created by or Dropdown component?
+  - By making use of **useRef** hook! We will set up a reference to our top-level element inside the Dropdown, and use that to decide whether the element we clicked was contained inside the Dropdown or not.
+
+### Making use of useRef
+
+```js
+const dropdownRef = useRef(); // Undefined until after first render
+
+useEffect(() => {
+  document.body.addEventListener("click", (event) => {
+    // Were we clicked inside the Dropdown?
+    if (dropdownRef.current.contains(event.target)) setOpen(false);
+  })
+}, []);
+
+return (
+  <div ref={dropdownRef} className="ui form">
+)
+```
+
+### Body Event Listener Cleanup
+
+In App.js, we add a new piece of state for showing the dropdown or not. We add a button with an event that togles this state. We wrap the Dropdown element (in the App's returned JSX) in a conditional, only rendering it if the _showDropdown_ state is true. Now if we hit the button and hide the Dropdown, and then click anywhere else on the screen, we get an error message! "Cannot read property 'contains' of null". This is happening from our event listener on the body.
+
+Why is this happening?
+
+- Whenever we remove a component from the DOM, all the **refs** that are attached to it get set to null (more specifically, the **ref.current** property) since we no longer have an element to refer to. But our event listener on the body is still set up, so we will run into the `ref.current` piece of code and encounter an error.
+
+Solution?
+
+- Whenever we are about to remove the Dropdown component from the DOM, we should turn off the event listener it attached to the body element.
+- So we will make use of the cleanup function that _useEffect_ allows!
+
+```js
+useEffect(() => {
+  // We now need reference to the handler, so we refactor it slightly
+  const onBodyClick = (event) => {
+    if (ref.current.contains(event.target)) {
+      return;
+    }
+    setOpen(false);
+  }
+
+  document.body.addEventListener("click", onBodyClick);
+
+  return = () => {
+    document.body.removeEventListener("click", onBodyClick);
+  }
+})
+```
+
+- Important take-away is that we can call **removeEventListener** on elements, reference the type of event we want to remove from and the specific event listener we want removed.
+- **Thinker:** Could we not just return early if `ref.current` is a falsey value?
+
+### The Translate Widget
+
+The final widget in this Widgets app is a language translation app. We will re-use the Dropdown component from the previous widget, which is used to specify which language we want to translate to.
+
+Our Architecture
+
+- App
+- Translate Component: States for _options_, _language_ and _setLanguage_ callback
+  - Shows an instance of a Dropdown component
+  - Shows an instance of a Convert component
+- Convert: Takes in text and a language and doing the translation logic
+- Dropdown: Able to select our language
+
+- Options will be an array of objects: { label: "Hindi", value: "hi" }
+  - Stores language and language code
+  - Passed down as a prop into the Dropdown, along with the currently selected language and a _setLanguage_ callback
+
+### Scaffolding the Translate Component
+
+Here we create the skeleton of the Translate component. It imports a Dropdown and defines an array of language option objects. Defines a _language_ state, setting its default value to the first element in the language options array.
+
+Returns the Dropdown as JSX, passing it the language options array as a prop, and a _selected_ prop that points to the _language_ state, as well as a _handleSelectedChange_ prop that points to _setLanguage_. Note the last two prop names are important, as those are the names our pre-existing Dropdown component expects.
+
+### Adding the Language Input
+
+We have the Dropdown displaying, but it's asking us to "Select a Color"! We are trying to select a language. So let's make the Dropdown we created as the last widget more re-usable. We give the Dropdown a prop called _label_. We then reference this label in the JSX and display it instead of the hard-coded "Select a color".
+
+Back in our Translate component, we now give it a _text_ state. We create a normal input element in our Translate component, setting its _value_ to our _text_ state, and giving its _onChange_ event a reference to _setText(event.target.value)_. We then add Semantic UI styling.
+
+### Understanding the Convert Component
+
+Convert Component
+
+- Takes in a _language_ and _text_
+- "Convert" is triggered
+- A new value of _language_ or _text_ has appeared! We should convert it and show the output
+- Make request to Google Translate API -> text + language code -> Google Translate API
+- Google API sends a response back -> Update state with data from response
+- Show data from response on the screen
+
+Google Translate API
+
+- cloud.google.com/translate/docs
+- This is a _paid API_. Stephen gives us an API key that we can use for free!
+- _His_ API key will only work if we run our app on localhost:3000
+
+### Building the Convert Component
+
+We begin our Convert component. It receives _language_ and _text_ props. We know we want something to happen when either of those props are changed, so we use \*_useEffect_, listing those as dependencies. We import the Convert component in our Translate component, passing down the _language_ and _text_ states to it.
+
+### Using the Google Translate API
+
+We `npm install axios`, and `import axios from 'axios';` in our Convert component.
+To make the Google API request, noting to that second argument to axios in a post request is some information to send along in the body (but we don't need to, Google just wants query string params):
+
+```js
+axios.post('https://translation.googleapis.com/language/translate/v2', {}, {
+  params: {
+    q: text,  // Text state, grabbed from user input
+    target: language.value, // Language code
+    key: <OurAPIKey>
+  }
+});
+```
+
+### Displaying Translated Text
+
+We need to take our Google response and display it to the screen, as the converted text. We create a new _translated_ state in our Convert component. We put our axios.post call in its own async helper function (inside useEffect still), call that function, and using the _data_ we get back from our axios call we `setTranslated(response.data.data.translations[0].translatedText)`. (Note the first data variable is what axios returns as a property of its _response_, the second is the object Google returns that we are interested in, and we then dive deeper into an array of translations - focusing on the first one - and its translatedText property). We then return _translated_ state as JSX.
+
+### Debouncing Translation Updates
+
+We have our translation working, but we are making Google API calls every single keypress to the text input! We want to limit this using **debouncing**. This will be done identical to how we did so in our Search widget. We will now have a **debouncedText** state, along with the **text** state we already have. We will have two useEffects:
+
+- useEffect #1:
+
+  - Set a timer to update _debouncedText_ in 500ms
+  - Return a cleanup function that cancels this timer
+
+- useEffect #2:
+  - Make a request with _debouncedText_
+
+```js
+// useEffect #1
+useEffect(() => {
+  const timerId = setTimeout(() => {
+    setDebouncedText(text);
+  }, 500);
+
+  return = () => {
+    clearTimeout(timerId);
+  }
+}, text);
+```
+
+```js
+// useEffect #2
+useEffect(() => {
+  const translate = async () => {
+    const { data } = await axios.post('https://translation.googleapis.com/language/translate/v2', {}, {
+      params: { q: debouncedText,  target: language.value, key: <OurAPIKey> }
+    });
+
+    setTranslated(data.data.translations[0].translatedText);
+  }
+
+  translate();
+
+}, [debouncedText])
+```
 
 ## Section 13 - Navigation From Scratch
 
@@ -1209,3 +2039,4 @@ But we get a Warning about each child in an array or iterator not having a uniqu
 ## Section 37 - Extras
 
 </details>
+```
