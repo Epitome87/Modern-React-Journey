@@ -1073,6 +1073,83 @@ handleFormSubmit = async term => {
 
 ## Section 9 - Building Lists of Records
 
+##### `Originally Started: 11/22/21`
+
+### Rendering Lists
+
+For the app, we create an ImageList component that will be tasked with rendering a list of images passed to it. We define an _images_ prop on the ImageList and pass the _images_ state in our App's state object to it.
+
+### Review of Map Statements
+
+Understanding the `map` array method is key to building lists of components with React.
+
+```js
+const numbers = [2, 4, 6, 8];
+const newNumbers = [];
+for (let i = 0; i < numbers.length; i++) {
+  newNumbers.push(numbers[i] * 10);
+}
+
+// Same thing, with a map statement
+const newNumbers = numbers.map((number) => {
+  return number * 10;
+});
+```
+
+- Creates a _new_ array.
+- Iterates over each element in the array (received as an argument - good convention to name it the singular form of what we are iterating over)
+- Returns a new value for that element based on some calculation (in our case multiplying the original value by 10).
+- Can remove the "return" keyword if it is a single line, as well as curly-braces and semi-colon, and the parentheses around the argument!
+- Does not mutate the array map is being called on
+
+### Rendering Lists of Components
+
+We can render each element in our _images_ prop in ImageList (a state passed down from App) as follows:
+
+```js
+const ImageList = (props) => {
+  const images = props.images.map((image) => {
+    return <img src={image.urls.regular} />;
+  });
+
+  return <div>{images}</div>;
+};
+```
+
+But we get a Warning about each child in an array or iterator not having a unique "key" prop...
+
+### The Purpose of Keys in Lists
+
+...We need to ensure each item in a rendered list gets a special "key" property.
+
+- React wants to be efficient, so when it sees a list it will go through each item and think...
+  - "Oh that element is already in the DOM; I don't need to render that again."
+  - "Oh, this item is new; I'll have to update and render it.
+- A **key** prop helps this process!
+
+  - "Oh, the element with this key is right here, and its contents remain unchanged. I won't update it!"
+  - "Hey, I see no element with this key; I guess I'll put it into the DOM now."
+  - A key is purely for performance consideration
+  - Should be unique
+
+  ### Implementing Keys in Lists
+
+  We give a key to the _root_ element in our list that's being returned from our map statement.
+
+  ```js
+  return <img key={image.id} src={image.urls.regular} />;
+  ```
+
+  If we had an outer dive, we'd put the key there:
+
+  ```js
+  return (
+    <div key={image.id}>
+      <img src={image.urls.regular} />
+    </div>
+  );
+  ```
+
 ## Section 10 - Using Ref's for DOM Access
 
 ## Section 11 - Let's Test Your React Mastery!
