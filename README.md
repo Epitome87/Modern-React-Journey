@@ -2039,4 +2039,3 @@ useEffect(() => {
 ## Section 37 - Extras
 
 </details>
-```
