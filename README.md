@@ -2309,7 +2309,221 @@ How do we make updates to our deployment?
 
 - Add changes to repo, commit them. Netlify detects the changes, automatically pushes new production build!
 
+### `Section Completed: 12/16/2021`
+
 ## Section 16 - On We Go...To Redux!
+
+### Introduction to Redux
+
+What is Redux?
+
+- State management library
+- Makes creating _complex_ applications easier
+- _Not_ required to create a React app!
+- _Not_ explicitly designed to work with React!
+
+Redux will be very challenging to understand at first, but it will get a lot easier and its use will become apparent!
+
+In this section, we will do the following:
+
+- Story (analogy) to help understand Redux
+- Write some code with Redux only
+- Work on a React app
+- Understand how to integrate React with Redux
+
+### Redux by Analogy
+
+Redux Cycle
+
+Action Creator -> Action -> dispatch -> Reducers -> State
+
+To help understand this, we will use an analogy. Let's pretend we are building an insurance company...
+
+- policy: Customer holds a "policy," if bad stuff happens to them we pay them
+- claim: Customer had something bad happen to them, we need to pay them.
+
+Insurance company has a few departments in it:
+
+- Claims History: Stores a list of all claims ever made
+- Policies: Stores a list of who has a policy with our insurance company
+- Accounting: Stores a big bag of cash, we pay people from this
+
+Customer -> Form -> Form Receiver -> 3 forms -> -> -> (Each of the 3 departments) -> (what the departments do)
+Customer fills out form, indicating they want some sort of policy
+The customer does not hand their form off directly to one of the 3 insurance departments. Rather, they hand it off to a Form Receiver (front office). The form receiving takes the form, makes some copies of it, and hands off the copies to each of the departments. (Even though Claims History dept doesn't care about the policy, they receive a copy of it anyways)
+
+### A Bit More Analogy
+
+Form to sign up for a policy -> Policies Department: List of Customers with Policies, adds the person who handed the form to the list of customers with policies
+Policies Department <- Management: "Tell me who has a policy right now!"
+Management hates walking to the policies department every time they want to ask for the list! So we change where the list of policies are stored...
+
+- Store in some central repository of data that includes all 3 department's data. Management can look in this central spot, rather than walk to each dept separate!
+- Any time form receiver makes a copy of the form and hands it off to the POlicy Dept, they also go to the central repo of data, find the list of policies (slice of data), and hand it into the policy dept along with the form. "Here's a new form, need you to process it, btw here's a list of all our policies I fetched from the central repo"
+  - Policy Dept look at the form, update list of policies, then pass it back to central repo.
+
+### Finishing the Analogy
+
+Form -> (Type) Claim, (Payload) { Name: Matt, Claim Amount: $500 }
+The type of form indicates the purpose of the form
+Payload is some info relevant to what is trying to be done
+
+In our scenario, we would have three types of "forms": Create Policy, Create Claim, Delete Policy. Their payloads would be (respectively): Name / Cash, Name / Claim Amount, Name.
+
+So, our analogy becomes:
+
+- Custom gives form to form receiver
+- Form receiver: "Hey, here's a new form someone left. Also, here's a list of all the Claims we have".
+- Claims History Dept: Is the form coming in a "Claim" form?
+  - If no, just dump the list of claims -> List of claims unchanged
+  - If yes, pull the "payload" part off the form, add it to the list of claims and dump the list back out front -> List of claims with new claim added, given back to central data!
+- Form receiver: "Hey Accounting, here's a new form someone left. Also, here's a bag of money!"
+- Accounting Dept: Is the form coming in a "Claim" form?
+  - Yes -> Pull the payload off the form (name and $20 amount). How much money do they want? $20? Okay, take it out of the bag, and send the back (minus $20) back to central data.
+  - No -> Are they signing up for a policy? Yes - Great! Put their $20 in the bag, and we'll send it all back to central data (plus $20 than before). No -> Then I don't care; jsut return the bag of money! (Money is same)
+- Etc with Polices Dept.
+
+### Mapping the Analogy to Redux
+
+How does this match up with Redux? Let's look at our original Redux Cycle diagram, and what the corresponding step in our insurance company analogy would be!
+
+Redux Cycle
+Action Creator -> Action -> dispatch -> Reducers -> State
+
+Insurance Company Cycle
+Person dropping off form -> The Form -> Form Receiver -> Departments -> Compiled department data
+
+- Action Creator: Function that creates or returns a plain JS object (an Action)
+- Action: Type property and a Payload property
+  - Some change we want to make
+  - Some context around the change we want to make
+  - Purpose of action is to describe some change we want to make to the data inside of our app
+- dispatch: A function, takes in an Action, makes copies of that object and passes it off to a bunch of different places in our app
+- Reducers: A function responsible for taking in an Action and some existing amount of data, process action, make change to data, and return it to be centralized in some other location
+  - Looks at Action, looks at the Action's type and decide how to update its data
+- State: Property, central repository of all info created by Reducers. Easy access to all data of our app.
+
+### Modeling with Redux
+
+```js
+// People dropping off a form (Action Creators)
+
+// Action Creator for creating policy
+const createPolicy = (name, amount) => {
+  // Returns an action (a form, in our alalogy)
+  return {
+    type: 'CREATE_POLICY',
+    payload: { name, amount },
+  };
+};
+
+// Action creator for deleting a policy
+const deletePolicy = (name) => {
+  return {
+    type: 'DELETE_POLICY',
+    payload: { name },
+  };
+};
+
+// Action creator for creating a claim
+const createClaim = (name, amountToCollect) {
+  return {
+    type: "CREATE_CLAIM",
+    payload: { name, amountToCollect }
+  }
+}
+```
+
+- By convention, we use all uppercase characters and underscores when we specify a type. E.g "CREATE_POLICY"
+- Almost all Action Creatores in Redux will look similar to the above!
+
+### Creating Reducers
+
+The _dispatch_ part of the process is part of Redux itself.
+
+```js
+// Reducers (Departments!)
+const claimsHistory = (oldListOfClaims = [], action) => {
+  if (action.type === 'CREATE_CLAIM') {
+    // We care about this Action ("form")!
+    return [...oldListOfClaims, action.payload];
+  }
+
+  // We don't care about the Action!
+  return oldListOfClaims;
+};
+
+const accounting = (bagOfMoney = 100, action) => {
+  if (action.type === 'CREATE_CLAIM') {
+    return bagOfMoney - action.amountToCollect;
+  } else if (action.type === 'CREATE_POLICY') {
+    return bagOfMoney + action.amountToCollect;
+  }
+
+  return bagOfMoney;
+};
+
+const policies = (listOfPolicies = [], action) => {
+  if (action.type === 'CREATE_POLICY') {
+    return [...listOfPolicies, action.payload.name];
+  } else if (action.type === 'DELETE_POLICY') {
+    return listOfPolicies.filter((name) => name !== action.payload.name);
+  }
+
+  return listOfPolicies;
+};
+```
+
+- Reducers are always functions with two arguments that are always passed in the same order:
+  - 1st argument: Existing slice of data that belongs to this reducer
+  - 2nd argument: An Action, which will typically modify that slice of data
+- Note that we pass the first argument a default value. This handles the case where it is the first time we are calling the Reducer and there does not yet exist a list of claims.
+- Note that when we change any slice of state, we want to return a _new_ array / object. _Never_ modify existing data structures inside a Reducer!
+
+### Rules of Reducers
+
+Note how we haven't haven't made a single reference to the Redux library yet!
+Now that we have our Action Creators and Reducers, we will wire them together in a single object called a _Store_
+
+```js
+const { createStore, combineReducers } = Redux;
+
+const ourDepartments = combineReducers({
+  accounting: accounting,
+  claimsHistory: claimsHistory,
+  policies: policies,
+});
+
+const store = createStore(ourDepartments);
+
+const action = createPolicy('Matthew', 20);
+
+store.dispatch(action); // Alert each department of this action
+store.getState(); // { accounting: 120, claimsHistory: [], policies: [ "Matthew" ]}
+
+store.dispatch(createPolicy('Caitlin', 15));
+store.dispatch(createPolicy('Daniel', 30)); // { accounting: 165, policies: [ "Matthew", "Caitlin", "Daniel "] }
+store.dispatch(createClaim('Matthew', 120)); // { accounting: 45, policies: [ "Matthew", "Caitlin", "Daniel" ], claimsHistory: { name: "Matthew", amountToCollect: 120 }}
+```
+
+- Store object represents our entire Redux app. Contains references to all our Reducers, and all the data produced by those Reducers.
+- Has function for dispatch: `store.dispatch()`
+
+### Important Redux Notes
+
+Redux Cycle
+
+To change state of our app, we call an -> **Action Creator** -> Produces an... -> **Action** -> Gets fed to... -> **dispatch** -> Forwards an action to... **Reducers** -> Creates new... -> **State** -> Wait until we need to update state again (These arrows slowly circle back to the beginning, thus the term Redux _Cycle_)
+
+We can only modify our state via the `dispatch` function and the action creatores / actions. We cannot reach into the Store and modify it manually!
+
+Why do we set up everything this way?
+
+- Typically, as our app increases in size, our app gets dramatically more complicated
+- With Redux, our app will start off with increased complexity, but as the app grows the complexity only grows a little bit!
+  - From the get-go, someone can look at your Action Creators and understand what they can and can't do in terms of the app's data
+
+### `Section Completed: 12/16/2021`
 
 ## Section 17 - Integrating React with Redux
 
