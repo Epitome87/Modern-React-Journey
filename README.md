@@ -1988,7 +1988,270 @@ useEffect(() => {
 
 ## Section 13 - Navigation From Scratch
 
+`Originally Started: 12/16/2021`
+
+### Navigation in React
+
+Typically, `React-Router` is used for Routing in React projects. But in order to learn the fundamentals behind it (and the fact that React Router changes so often), we will implement routing from scratch. We will incrementally learn how to do routing-type features.
+
+### Basic Component Routing
+
+`window.location` is automatically updated when we navigate to different URLs. It contains information such as host, hostname, and what we care about most, `pathname`. Pathname is relative to our index route, i.e at http://localhost:3000/translate, the `pathname` would be "translate"
+
+So we could create a function for each component / route we want to handle, and render it conditionally:
+
+```js
+const showAccordion = () => {
+  if (window.location.pathname === "/accordion" { return <Accordion items={items} /> }; )
+}
+
+const showList = () => {
+  if (window.location.pathname === "/list" { return <Search /> }; );
+}
+
+return (
+  <div>
+  {showAccordion}
+  {showList}
+  </div>
+)
+```
+
+But this way is very repetitive, and a lot of logic is shared.
+
+### Building a Reusable Route Component
+
+We could make a reusable function that takes in a route and component...
+
+```js
+const showComponent = (route, component) => {
+  return window.location.pathname === route ? component : null;
+};
+```
+
+But this isn't a very React way of doing things! We could make it a Component instead:
+
+```js
+// Route.js
+const Route = ({ path, children }) => {
+  return window.location.pathname === path ? children : null;
+};
+
+export default Route;
+
+// App.js
+return (
+  <div>
+    <Route path='/accordion'>
+      <Accordion items={items} />
+    </Route>
+    <Route path='/list'>
+      <Search items={items} />
+    </Route>
+  </div>
+);
+```
+
+### Handling Navigation
+
+With our custom Route component in place, as well as creating navigational links to reach the URLs that render those components, we still have an issue: Whenever we click on a navigation link, we reload the entire index.html file, and reload all the CSS / JS as well. This is not the React way! There is no reason to reload all these assets. We need to make it so only the URL updates, but no requests are made and no reloads are made.
+
+Ideally, we want this process:
+
+- User clicks on "List" (or another link)
+- Change the URL, but don't do a full page refresh!
+- Each Route could detech the URL has changed
+- Route could update piece of state tracking the current pathname
+- Each Route re-renders, showing/hiding components appropriately
+
+### Building a Link / Changing the URL
+
+We can create a `Link` component, with an onClick handler. This handler will build a NavigationEvent, which will then be sent off to every Route component in our app. It will let them know of URL changes. The Route can then decide if it should render its child components.
+
+```js
+// Link.js
+const Link = ({ className, href, children }) => {
+  const onClick = (event) => {
+    // Prevent full-page reload!
+    event.preventDefault();
+
+    // Navigate to the href prop
+    window.history.pushState({}, "", href);
+
+    // Communicate to Route components that URL has changed
+    const navEvent = new PopStateEvent("popstate");
+    window.dispatchEvent(navEvent);
+  };
+
+  return <a onClick={onClick} className={className} href={href}>{children}</a>;
+};
+
+export default Link;
+
+// In Header.js
+const Header = () => {
+  return (
+    <div>
+      <Link href="/accordion">Accordion</Link>
+      <Link href="/list">Search</Link>
+    </div>
+}
+```
+
+### Detecing Navigation
+
+```js
+const Route = ({ path, children }) => {
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const onLocationChange = () => {
+      console.log('Location Changed!');
+      setCurrentPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', onLocationChange);
+
+    return () => {
+      window.removeEventListener('popstate', onLocationChange);
+    };
+  }, []);
+
+  // return window.location.pathname === path ? children : null;
+  return currentPath === path ? children : null;
+};
+```
+
+Now the URL updates, and we can detect in the Route component that a change has occured. The final thing we need is to have the Route component update some piece of state when the URL updates, and determine if it should be shown.
+
+### Updating the Route
+
+We will introduce a piece of state in the Route component whose sole purpose is to get the Route component to re-render itself when `window.location.pathname` changes. See the code in the above lecture's notes for where this state logic was coded.
+
+There's actually one more feature we can add -- the ability to open a link in a new tab!
+
+### Handling Command Clicks
+
+Making it so a user can cmd + click / ctrl + click a Link is rather easy. We just check if the appropriate key is being pressed down when the Link is clicked (depending on if the user is on Mac or Windows) and then return from the onClick event early, letting the Link be handled normally (i.e new request, page refreshed).
+
+```js
+// Link.js
+const onClick = (event) => {
+  if (event.metaKey || event.ctrlKey) {
+    return;
+  }
+
+  event.preventDefault();
+  // etc
+};
+```
+
+### `Section Completed: 12/16/2021`
+
 ## Section 14 - Hooks in Practice
+
+`Originally Started: 12/16/2021`
+
+## Project Overview
+
+This section will just be our Youtube app redone, this time utilizing Hooks! This will be rather easy, so I will be skimpy on the notes.
+
+### Removing Callback
+
+**IMPORTANT** Stephen points out that
+
+```js
+<VideoList videos={videos} onVideoSelect={(video) => setSelectedVideo(video)} />
+```
+
+is the same as removing the arrow function all together:
+
+```js
+<VideoList videos={videos} onVideoSelect={setSelectedVideo} />
+```
+
+### Overview on Custom Hooks
+
+To make reusable code when are we making use of function components and hooks, we create **Custom Hooks**
+We will make a custom hook for our video fetching logic.
+
+Custom Hooks
+
+- Best ways to create reusable code in React project (besides components!)
+- Created by extracting hook-related code out of functional components (Not focused on JSX -- just the stuff at the top of a component)
+- Custom hooks _always_ make use of at least one primitive hook internally (useState, useEffect, etc). We are not making something _like_ useEffect or useState, as one often confuses the term "custom hook" with.
+- Each custom hook should have _one purpose_
+  - E.g fetching video logic, OR selecting a video logic. But _not both_!
+- Kind of an art form!
+  - Difficult to have a list of steps to know what should be a custom hook. Just takes practice
+- Data-fetching is a great thign to make reusable
+
+### Process for Building Custom Hooks
+
+Even though creating custom hooks is more of an art-form, we can try our best to develop a process for it!
+
+- Identify each line of code related to some single purpose in an existing component
+- Identify the _inputs_ to that code
+- Identify the _outputs_ to that code
+- Extract all of the code into a separate function, receiving the inputs as arguments, and returning the outputs
+
+Looking at our video searching app, we can identify our inputs (default search term) and outputs (list of videos, function to search videos). We can create the hook by thinking:
+
+- "If you give me (the custom hook) a
+  - a _default search term_
+- I will give you (the developer)
+  - a _way to search for videos_
+  - a _list of videos_"
+
+### Extracting Video Logic
+
+- Typically put hooks in a "hooks" folder
+- Typically give them a name with "use" in front, like "useVideos"
+- Can return our outputs as either an array (the React way) or an Object (more of a JS way)
+
+```js
+import { useEffect, useState } from 'react';
+import youtube from '../apis/youtube';
+
+const useVideos = (defaultSearchTerm) => {
+  const [videos, setVideos] = useState([]);
+
+  useEffect(() => {
+    search(defaultSearchTerm);
+  }, [defaultSearchTerm]);
+
+  const search = async (term) => {
+    const response = await youtube.get('/search', {
+      params: {
+        q: term,
+      },
+    });
+
+    setVideos(response.data.items);
+  };
+
+  // Return list of videos, function used to search videos
+  return [videos, search];
+};
+
+export default useVideos;
+```
+
+### Using the Custom Hook
+
+```js
+const App = () => {
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [videos, search] = useVideos('buildings');
+
+  useEffect(() => {
+    setSelectedVideo(videos[0]);
+  }, [videos]);
+
+  return JSX;
+};
+```
+
+### `Section Completed: 12/16/2021`
 
 ## Section 15 - Deploying a React App
 
@@ -2037,6 +2300,3 @@ useEffect(() => {
 ## Section 36 - React Router + Redux Form v4
 
 ## Section 37 - Extras
-
-</details>
-```
