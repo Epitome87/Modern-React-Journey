@@ -2255,6 +2255,60 @@ const App = () => {
 
 ## Section 15 - Deploying a React App
 
+### `Originally Started: 12/16/2021`
+
+### Deployment Overview
+
+Built into create-react-app is a command to build out our project in a deployment bundle
+
+- We no longer have our development server, instead React gives us files such as...
+- Index.html, bundle.js, image.jpg, index.css, etc. We load these files into a browser to run our app
+- We take those files and upload them to some sort of deployment target
+- Target takes the files and hosts them
+- Whenever user types in our domain, browser makes a request to our deployment provider, response contains always the index.html file.
+- Loaded up in their browser, with script tags, linked tags, etc, makes additional requests for those files
+- We don't need a virtual machine, as we are not executing any code on any server when we host our app!
+  - Only need a VM if we are running some sort of active server that is running some code, like a Node JS API. The VM runs that server process and that server responds to incoming requests
+- Costs dramatically less to deploy a React app than a NodeJS server or API!
+  - Hosting static files (like with React) is usually very cheap, or even free!
+
+### Deployment with Vercel
+
+- Sign up at vercel.com
+  - Via Github, Gitlab, or BitBucket
+- Install the Vercel command line interface (CLI)
+  - At terminal, go to your project's directory: `npm install -g vercel`
+- Run 'vercel' in our project directory!
+  - Run `vercel login`
+  - Enter email address associated with your Vercel account
+  - Click the response email sent to you, hit "Verify"
+  - Run `vercel`
+    - Fill out some info (can just hit Enter and use default responses)
+  - Vercel gives link to your site, and viola!
+
+What if we update our app, though?
+
+- Make changes, then
+- Simply run `vercel --prod`
+
+_TODO_ Look into this...doesn't it automatically update if you just push changes to Github? Maybe the above method is if you don't tie your project to a Github repo
+
+### Deployment with Netlify
+
+- Create a Github repo for your project. Public or Private -- either is fine
+- Commit changes to your project locally
+- Link your project to the new repo
+- Push your code to Github
+- Sign up for an account with netlify.com
+  - Can signup / login with Github, GitLab, BitBucket, or Email
+- Link your Github account, select the repo you want to deploy
+  - "New Site from Git", select all defaults
+  - Go to link provided, and viola!
+
+How do we make updates to our deployment?
+
+- Add changes to repo, commit them. Netlify detects the changes, automatically pushes new production build!
+
 ## Section 16 - On We Go...To Redux!
 
 ## Section 17 - Integrating React with Redux
@@ -2300,8 +2354,8 @@ const App = () => {
 ## Section 36 - React Router + Redux Form v4
 
 ## Section 37 - Extras
-<<<<<<< HEAD
-=======
+
+# <<<<<<< HEAD
 
 </details>
 >>>>>>> 2f09f21541fc6c629d5bb5edbf8b464a24f5c99d
