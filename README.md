@@ -2300,3 +2300,8 @@ const App = () => {
 ## Section 36 - React Router + Redux Form v4
 
 ## Section 37 - Extras
+<<<<<<< HEAD
+=======
+
+</details>
+>>>>>>> 2f09f21541fc6c629d5bb5edbf8b464a24f5c99d
