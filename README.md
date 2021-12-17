@@ -2527,6 +2527,219 @@ Why do we set up everything this way?
 
 ## Section 17 - Integrating React with Redux
 
+### `Originally Started: 12/16/2021`
+
+### React Cooperating with Redux
+
+We will create a very simple app, and then later add Redux to it.
+
+This app will have several hard-coded Songs, and a button to "Select" one. Details for that selected Song will be displayed. And that's it!
+
+Our app will have a SongList and a SongDetail component
+
+- SongList: Displays Song Title and Select button, for each song
+- SongDetail: Details For: Title, Length
+
+### React, Redux, and...React-Redux!
+
+So far we've used React. We've also used Redux on its own. Now it's time to use `React-Redux`! We need **all three** libraries to be installed! `npm install --save redux react-redux`
+
+`React-Redux`: Gets React and Redux to work together
+
+### Design of the Redux App
+
+How would we design our App without Redux?
+
+- App component: State for list of songs, state for selected song
+- SongList: List of songs (via prop passed down from App), onSongSelect (callback function via prop from App, called from within SongList when song is selected and passed back to parent)
+- SongDetail: Selected song (via prop passed down from App)
+
+But what about with Redux?
+
+- React:
+  - We have the same 3 components, with same hierarchy. No passing of props, though!
+- Redux:
+  - Has Reducers: One for Song list, one for selected song
+  - Has Action Creators: Select Song
+
+Note that in this example our list of songs is hard-coded and static, and thus not really needed in Redux. But we will use it here for demo sake.
+
+### How React-Redux Works
+
+Store: (Has Reducers for Song list and Selected Song) -> Provider (imagine arrows from this point going downwards) -> App -> Connect (Communicates with the "Provider") -> SongList & SongDetail
+Action Creators: (Selected Song)
+
+Provider and Connect are implemented with React-Redux.
+
+We take the Store that is created, and pass it as a prop into the Provider. It is rendered at the top of the hiearchy -- even above App. Provider will always have a reference to the Store / Reducers.
+
+Connect component can communicate with the Provider, through the **Context System** (not through props). They can communicate directly, even if there are child components between them.
+
+### Redux Project Structure
+
+- /src
+  - /actions: Contains files related to action creators
+  - /components: Files related to components
+  - /reducers: Files related to reducers
+  - index.js: Sets up _both_ the React and Redux sides of the app
+
+In our project we will create an "index.js" file in our /actions folder. Why do we name it this, when we already have an index.js file elsewhere?
+
+- Webpack, by default, imports files with the name "index.js" if you don't specify a filename after a folder. So we do this as a shortcut, so we can import our actions like: `import actions from "../actions";`
+
+### Named vs Default Exports
+
+When creating our Action Creators, we will use **Named Exports** rather than the **Default Export** we've been doing for React Components. A named export allows us to export many different functions (or values, objects, etc) from a single file. We then use the curly-braces when importing:
+
+`export const selectSong = song => { };`
+`import { selectSong } from "../actions";`
+
+Our Action Creator looks like:
+
+```js
+// Action Creator
+export const selectSong = (song) => {
+  // Return an Action (Plain JS object). Must have a type property, optionally a payload
+  return {
+    type: 'SONG_SELECTED',
+    payload: song,
+  };
+};
+```
+
+### Building Reducers
+
+Our Reducers look like:
+
+```js
+const songsReducer = (action, payload) => {
+  return [
+    { title: 'Uprising', duration: '4:18' },
+    { title: 'No Scrubs', duration: '4:05' },
+    { title: 'All Star', duration: '3:15' },
+    { title: 'I Want It That Way', duration: '1:45' },
+  ];
+};
+
+const selectedSongReducer = (selectedSong = null, action) => {
+  if (action.type === 'SONG_SELECTED') {
+    return action.payload;
+  }
+
+  return selectedSong;
+};
+```
+
+### Wiring up the Provider
+
+We add the following to the bottom of our reducers file:
+
+```js
+export default combineReducers({
+  songs: songsReducer,
+  selectedSong: selectedSongReducer,
+});
+```
+
+In our Index.js, we import Provider, createSTore, and our reducers. We then wrap Provider around App, passing to its "store" property and instance of our created store.
+
+```js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import App from './components/App';
+import reducers from './reducers';
+
+ReactDOM.render(
+  <Provider store={createStore(reducers)}>
+    <App />
+  </Provider>,
+  document.querySelector('#root')
+);
+```
+
+### The Connect Function
+
+```js
+// SongList.js
+import { connect } from 'react-redux';
+export default connect()(SongList);
+```
+
+The above code looks pretty odd! But it is perfectly valid JavaScript syntax. It's like the following example:
+
+```js
+function connect() {
+  return function () {
+    return 'Hi there!';
+  };
+}
+
+// connect(); // No results
+connect()(); // Now we see "Hi there!"
+```
+
+So the `connect` import from "react-redux" is returning a function! And when we call the function that gets returned, we put on the second set of parenthesis (passing in our Component as an argument) to actually invoke it!
+
+Connect is actually a React component.
+
+### Configuring Connect with MapStateToProps
+
+Convention to name the following method as `mapStateToProps`:
+
+```js
+const mapStateToProps(state) => {
+  console.log(state);
+
+  return state;
+}
+
+export default connect(mapStateToProps)(SongList);
+```
+
+With this set-up, we now have access to our Redux state! For our SongList, we want to give it a prop named "songs" mapped to the value of `state.songs`, so we can do:
+
+```js
+const mapStateToProps(state) => {
+  return { songs: state.songs };
+};
+
+// Now have access to "songs" as a prop:
+return <div>{props.songs.map(song => return song.title)}</div>
+```
+
+In SongList's props, we also get a reference to the dispatch function from the Redux store.
+
+### Calling Action Creators from Components
+
+When we click our button to select a song, we want to use an Action Creator to run our "selectSong" method. We do this by importing our Action Creator: `import { selectSong } from "../actions";`. We then go back to our `connect` function, and pass `selectSongs` in an object, where we can name the key whatever we want, but we stick with the same name as the `selectSongs` method:
+
+```js
+export default connect(mapStateToProps, { selectSong })(SongList);
+```
+
+And finally, we can now call this method when the "Select" Button is hit on a song:
+
+```js
+<button onClick={() => selectSong(song)}>
+```
+
+Our State (mapped to props) now holds: props.selectedSong, which is the song we clicked on!
+
+Why did we import the Action Creator, and just pass it off to the Connect function, instead of just calling it directly? Find out next lecture!
+
+### Redux is Not Magic!
+
+- Redux does not automatically detect action creators being called
+- Redux does not automatically detect a function returning an object that is an "action"
+
+So in our app, calling `selectSong` on its own, without hooking it to connect, is just going to return an object with a type and payload property -- and that's it! It never gets magically forwarded to Redux, and state is not updated or managed.
+
+When we pass our Action Creator to connect, they get wrapped up in a new JS function. This function calls our action reator, takes the returned action, and calls the dispatch function for us.
+
+### `Section Completed: 12/17/2021`
+
 ## Section 18 - Async Actions with Redux Thunk
 
 ## Section 19 - Redux Store Design
