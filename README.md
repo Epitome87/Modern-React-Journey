@@ -2742,6 +2742,228 @@ When we pass our Action Creator to connect, they get wrapped up in a new JS func
 
 ## Section 18 - Async Actions with Redux Thunk
 
+### `Originally Started: 12/17/2021`
+
+### App Overview and Goals
+
+This is a very simple, relatively boring app we will be learning in this section. In order to really drive home the concepts of Redux, it is best to do so with a relatively simple, plain project. So the focus will not be on a fun, complex app.
+
+App Goals
+
+- Absolutely understand the purpose of reducers
+- Absolutely understand making API requests with Redux
+- Absolutely understand the purpose of middleware in Redux, particularly "redux-thunk"
+
+The app will render a list of blog posts (fetched by an outside API). It will contain the title of the post, the body of the post, and the author's name. It will require only 2 components:
+
+- PostList: Shows all the blog posts
+- UserHeader: Only responsible for rendering the Author's name
+
+Data will be fetched via axios, over to JSONPlaceholder API. This API has a lot of fake data we can fetch. The API can be found at: `jsonplaceholder.typicode.com/`
+We will be making requests to two different endpoints here: One for blog posts, and one for each individual author's name for those blog posts.
+
+## Initial App Setup
+
+We will install redux, react-redux, axios, and redux-thunk
+
+- redux: The redux library
+- react-redux: Integration layer between react and redux
+- axios: Helps us make network requests
+- redux-thunk: Middleware to help us make requests in a redux application
+
+### How to Fetch Data in a Redux App
+
+General Data Loading with Redux
+
+- Component gets rendered onto the screen
+- Component's `componentDidMount` lifecycle method gets called
+- We call action creator from `compnentDidMount`
+- Action Creator runs code to make an API request
+- API responds with data
+- Action creator returns an _action_ with the fetched data on the _payload_ property
+- Some reducer sees the action, returns the data off the _payload_
+- Because we generated some new state object, redux/react-redux cause our React app to be re-rendered
+
+- First 3 steps: Components are generally responsible for fetching data they need by calilng an action creator
+- Next 3 steps: Action creators are responsible for making API requests
+  - This is where Redux-Thunk comes into play!
+- Last 2 steps: We get fetched data into a component by generating new state in our redux store, then getting that into our component through `mapStateToProps`
+
+### Wiring Up an Action Creator
+
+In the list above, we will cover the 1st three steps by doing the following:
+
+- Create an Action Creator:
+
+```js
+export const fetchPosts = () => {
+  return {
+    type: 'FETCH_POSTS',
+  };
+};
+```
+
+- Use that Action Creator in PostList:
+
+```js
+import React, { useEffect } from 'react';
+import { connect } from 'react-redux';
+import { fetchPosts } from '../actions';
+
+const PostList = (props) => {
+  useEffect(() => {
+    props.fetchPosts();
+  }, []);
+
+  return <div>PostList</div>;
+};
+
+// First argument is null -- only for now
+export default connect(null, { fetchPosts })(PostList);
+```
+
+### Making a Request From an Action Creator
+
+We now move onto the next 3 steps.
+
+We create a custom, pre-configured axios object and import it into our action creator file, where we will make a GET request:
+
+```js
+import jsonPlaceholder from '../apis/jsonPlaceholder';
+
+export const fetchPosts = async () => {
+  // Bad approach! Breaking rules of Redux! Breaking rules of Action Creator: "Actions must be plain objects"! "Use custom middleware for async actions"!
+  const response = await jsonPlaceholder.get('/posts');
+
+  return {
+    type: 'FETCH_POSTS',
+    payload: response,
+  };
+};
+```
+
+However, the above code is a very bad approach! It breaks the rules of Redux / action creators, because Actions must be plain objects. We need to make use of middleware for async actions. This is where Redux-Thunk comes into play!
+
+#### Understanding Async Action Creators
+
+What's wrong with our "fetchPosts" action creator? Two things, actually:
+
+- 1 - Action creators must return plain JS objects that have a type property (and optionally a payload) -- but we are not!
+  - What? But we are returning an object with a type property! So how is this wrong?
+  - The transpiled code (2015 syntax) is what actually gets executed inside the browser. The transpiled code is tremendously large due to the use of async / await!
+  - The transpiled code has a switch statement, where one case returns jsonPlaceholder.get("/posts"), and another returns the action.
+  - So when our component mounts, we call fetchPosts, which probably causes React-Redux to call `store.dispatch(fetchPosts())` behind the scenes. And fetchPosts is invoked and `return jsonPlaceholder.get("/posts")` the very first time it is invoked! So we are returning the request, which is then attempted to be processed by `store.dispatch` -- but it is not an action object!
+- 2 - By the time our action gets to a reducer, we won't have fetched our data! (Elaborated on next lecture)
+
+### More on Async Action Creators
+
+What if we just remove async / await from the action creator?
+
+```js
+export const fetchPosts = () => {
+  const promise = jsonPlaceholder.get('/posts');
+  return { type: 'FETCH_POSTS', payload: promise };
+};
+```
+
+This eliminates the error message our browser gives about not having a plain JS object. But the code _probably_ will not work as expected!
+
+When we call an action creator, and it returns an action, which is dispatched and goes to reducers...all those steps are executed in an amazingly small fractions of a fraction of a second. By the time our action gets to a reducer, our async fetch request most likely will not have returned the fetched data yet! And we have no way of telling React-Redux to wait a few moments before it calls its reducers.
+
+Now that we understand the issues, we can make use of middleware to solve them!
+
+### Middlewares in Redux
+
+There are essentially two kinds of action creators:
+
+- Synchronous Action Creator: Instantly returns an action with data ready to go
+- Asynchronous Action Creator: Takes some amount of time for it to get its data ready to go
+
+So far, we have only dealt with synchronous ones. We _must_ use middlewares in order to use async action creators.
+
+What is a Middleware in Redux? Think of it as something that occurs between the `dispatch` and `reducers` phase of the Reduce Cycle. So now the cycle includes: `dispatch -> forwards an action to... -> Middleware -> ...sends action to... -> Reducers -> creates new state`
+
+We can have as many or few middlewares as we want in Redux.
+
+Middleware in Redux
+
+- Function that gets called with every action we dispatch
+- Has the ability to _stop_, _modify_, or otherwise mess around with actions
+  - Example: Simple middleware that simply console.log every action we dispatch
+- Tons of open source middleware exist
+  - Can create our own as well!
+- Most popular use of middleware is for dealing with async actions
+- We are going to use a middleware called "Redux-Thunk" to solve our async issues
+
+### Behind the Scenes of Redux Thunk
+
+Normal Rules
+
+- Action Creators _must_ return action objects
+- Actions must have a type property
+- Actions can optionally have a payload
+
+Rules with Redux Thunk
+
+- Action Creators _can_ return action objects _or_ Action Creators _can_ return functions!
+  - If we return a function, Redux Thunk calls it for us.
+- If an action object gets returned, it must have a type
+- If an action object gets returned, it can optionally have a payload
+
+This is the only change Redux Thunk makes to our app!
+
+How does this help us, though? If whatever is passed to Redux Thunk is a typical action, it lets it pass and do its usual thing (or onto the next middleware). But if it is a function, Redux Thunk thinks:
+
+- "I'm going to call you with the dispatch and getState functions. Go ahead and dispatch actions at your leisure.
+- Function invoked with `dispatch` -> We wait for our request to finish -> Request complete, dispatch action _manually_ -> New Action (outside of Redux Thunk logic) -> Goes back through `dispatch` again -> Through Redux Thunk, this time Thunk observes the action and since it is now _not_ a function, it lets it pass through and process as normal!
+- Thunk invokes our action function with dispatch and getState as arguments:
+
+```js
+export const fetchPosts = () => {
+  return async function (dispatch, getState) {
+    const response = await jsonPlaceholder.get('/posts');
+
+    // We MANUALLY dispatch when appropriate (after we await response)
+    dispatch({ type: 'FETCH_POSTS', payload: response });
+  };
+};
+```
+
+This gives us a lot of power, as dispatch and getState provide us with so much info over our Redux store!
+
+_Redux Thunk is only 14 lines of code!_
+
+### Shortened Syntax with Redux Thunk
+
+To use Thunk, we can import it with `import thunk from "redux-thunk"`. Since it is a middleware, which we need to attach to Redux, we will also need to import: `import { applyMiddleware } from "redux"`. Lastly, when we create our store, we pass not only our reducers, but also `applyMiddleware(thunk)`:
+
+```js
+import { Provider } from 'react-redux';
+import { createStore, applyMiddleware } from 'redux';
+import thunk from 'redux-thunk';
+import reducers from './reducers';
+
+const store = createStore(reducers, applyMiddleware(thunk));
+
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.querySelector('#root')
+);
+```
+
+We can also clean up our action creator syntax quite a bit using ES2015 pieces of syntax:
+
+```js
+export const fetchPosts = () => async (dispatch) => {
+  const response = await jsonPlaceholder.get('/posts');
+  dispatch({ type: 'FETCH_POSTS', payload: response });
+};
+```
+
+### `Section Completed: 12/17/2021`
+
 ## Section 19 - Redux Store Design
 
 ## Section 20 - Navigation with React Router
