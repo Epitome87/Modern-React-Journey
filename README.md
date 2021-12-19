@@ -2151,7 +2151,7 @@ const onClick = (event) => {
 
 `Originally Started: 12/16/2021`
 
-## Project Overview
+### Project Overview
 
 This section will just be our Youtube app redone, this time utilizing Hooks! This will be rather easy, so I will be skimpy on the notes.
 
@@ -2762,7 +2762,7 @@ The app will render a list of blog posts (fetched by an outside API). It will co
 Data will be fetched via axios, over to JSONPlaceholder API. This API has a lot of fake data we can fetch. The API can be found at: `jsonplaceholder.typicode.com/`
 We will be making requests to two different endpoints here: One for blog posts, and one for each individual author's name for those blog posts.
 
-## Initial App Setup
+### Initial App Setup
 
 We will install redux, react-redux, axios, and redux-thunk
 
@@ -2966,6 +2966,219 @@ export const fetchPosts = () => async (dispatch) => {
 
 ## Section 19 - Redux Store Design
 
+### `Originally Started: 12/17/2021`
+
+### Rules of Reducers
+
+In the past few sections, we covered the first 6 steps in our "General Data Loading with Redux" diagram. We still need to go over the final two steps:
+
+- Some reducer sees the action, returns the data off the "payload"
+- Because we generated some new state object, redux/react-redux cause our React app to be re-rendered
+
+We are going to make a `postsReducer`, which maintains an array of all fetched posts.
+
+Rules of Reducers
+
+- Must return _any_ value besides 'undefined'
+- Produces 'state,' or data to be used inside of your app using only previous state and the action (reducers are pure)
+- Must not reach 'out of itself' to decide what value to return
+- Must not mutate its input 'state' argument
+
+### Return Values from Reducers
+
+If we ever return undefined from a reducer, we will encounter an error message. If we explicitly return undefined or fail to put a return statement, we get errors!
+
+When Redux first boots up it runs each reducer one time. This is why in our reducers we give the first argument an intiial value as a default parameter, even if that value is null. Neither during initialization or any time after can it return undefined.
+
+### Argument Values
+
+The first argument into your reducer is always going to be whatever the reducer returned the last time it was ran! So if we start out with `selectedSong = null`, the first time the reducer is ran it is passed `undefined` as an argument. Our function sees that, and defaults it to `null` (which is how default parameters work -- they are set if no value is provided, and undefined is essentially no value). In this way, the reducer is cyclical, and we alter state using only the previous state (returned last call of the reducer, and now our first argument in current reducer call) and the specified action (passed as second argument).
+
+### Pure Reducers
+
+The 3rd rule of reducers is that they must be _pure_. It must not reach out of itself / its own function to decide what value to return. This means we cannot make an API request, try to read some file on our hard drive, or ask the user for some input, or reach into DOM and try to pull some value out of an element. The reducer should only look at the previous state and an action in order to decide what to do.
+
+### Mutations in JavaScript
+
+The final rule is that a reducer must not mutate its input state argument. This rule is actually a bit misleading.
+
+In the context of JS, pushing an element into an Array is a mutation. Or if we remove an element, or change an element. We can also mutate an object with actions such as updating the value of a property, adding a key/value pair, or remove a key/value pair.These are all array / object actions we are probably very familiar with, so it will be very easy to accdidentally mutate them. But in a reducer, we must make sure to _never mutate_ the state!
+
+Inside of JS, strings and numbers are _immutable_ values; we cannot change them like we can arrays and objects. Consider:
+
+```js
+const name = 'Matthew';
+name[0]; // "M"
+name[0] = 'X'; // No errors, but...
+name; // Name is still "Matthew", so we did not actually change the first letter
+```
+
+Therefore, if our reducer is only ever returning a number or a string, we don't have to worry about the mutation rule, as there is no possible way we can mutate such data anyways.
+
+### Equality of Arrays and Objects
+
+When checking for equality in primitive values, we can use the "===" operator to see if the values are the same. But with arrays and objects, "===" is checking if it is the exact same array / object in memory, not if they have the same contents.
+
+### Misleading Rule
+
+Going back to the rule about not mutating the input state argument...What is this rule really talking about? Why is it misleading? And why list it as a rule!
+
+- A lot of posts and resource use this as a rule
+- But really, you _can_ mutate all you want, and Redux will not complain! You can push/pop elements in an array, add properties to objects, modify properties, etc!
+- But there is one tiny corner-case where mutating the state can land you in trouble. So it's easier to tell beginniners "don't _ever_ mutate state"
+
+**We are not going to mutate state, ever**
+
+- We just want to understand the behind the scenes of this rule to help better understand Redux, but the convention is to _not mutate_
+
+To better understand, we look at the `combineReducers.js` file in the source for of Redux. Here we note that a strict equality comparison is being made, asking if the previous state is equal to the new state. This code is essentially checking to see if any of our reducers returned a brand new [reference in memory] to an array, object or value for a number or string. If they do, Redux is going to return the brand new result of all your reducers (new state) -- otherwise old state.
+
+Why's this matter? Well if you simply return the same `state` object that you receive as the first parameter into your reducer function (modified or not), Redux sees that it is the same array / object, and thinks that nothing has changed, so it does no updates to data and therefore no React re-renders!
+
+**Conjecture**: So I guess it's okay to mutate the state, or even the state object. But what we return in the reducer must be a brand new object / array / reference, otherwise Redux becomes mislead into thinking no change has occured in the state, due to it checking if the old state _in memory_ is equal to the new state _in memory_.
+
+### Safe State Updates in Reducers
+
+Let's look at some common ways / syntax to work on state without mutating it!
+
+| Task                               | Bad (Mutates)       | Good (No Mutation)                                                                  |
+| ---------------------------------- | ------------------- | ----------------------------------------------------------------------------------- |
+| Removing an element from an array  | state.pop()         | state.filter(element => element !== "hi")                                           |
+| Adding an element to an array      | state.push("hi")    | [...state, "hi" ]                                                                   |
+| Replacing an element in an array   | state[0] = "hi"     | state.map(el => el === "hi" ? "bye" : el)                                           |
+| Updating a property in an object   | state.name = "Matt" | { ...state, name: "Matt }                                                           |
+| Adding a property to an object     | state.age = 34      | {...state, age: 34 }                                                                |
+| Removing a property from an object | delete state.name   | { ...state, age: undefined } (janky) or `_.omit(state, "age")` (via lodash library) |
+
+### Switch Statements in Reducers
+
+Convention to use a `switch` statement in our reducers, rather than a series of if-statements. We also need to make sure we have a _default case_, in case no other cases are matched.
+
+### Extracting Logic to MapStateToProps
+
+In our `mapStateToProps` function, we can do some pre-configuration on our returned object if we want. For example, we no longer want to return `{ users: state.users }` from this function, as it is a bit overkill to have our UserHeader component (responsible for showing the name of a single user) have reference to a list of _all_ users. So we can do:
+`return { user: state.users.find(user => user.id === userId )}`
+
+But wait! `userId` is a prop of our UserHeader component, and this `mapStateToProps` function is outside of the component's scope, so we cannot access props. Or can we? The `mapStateToProps` function also has a second additional argument, which is a reference to the component's props! So this becomes:
+
+```js
+const mapStateToProps = (state, ownProps) => {
+  return { user: state.users.find((user) => user.id === ownProps.userId) };
+};
+```
+
+### That's the Issue!
+
+There's a little problem with our application...In our UserHeader, we are making requests for the same user each time any of their posts are encountered -- once for each render of UserHeader. But we only need to fetch the user once. How can we prevent duplicate requests? We can solve this problem in two different ways...
+
+### Memoizing Functions
+
+When we **memoize** a function, we ensure that the function only ever runs once for each set of unique arguments. For example, if we call `add(2, 3)`, the first time the logic needed to calculate the result (5) is ran. But any time after that, the memoized function simply returns the value it did last time -- no need to process all the code again. So for our `fetchUser(userId)` situation, if we _memoize_ this function, we ensure that the logic for sending off a GET request to get the user is only ran the initial time the function is called. Each time after, the memoized function remembers what value (user) to return, and simply returns it without making the GET request again.
+
+### Memoization Issues
+
+(Stephen uses the memoize functionality provided by the `lodash` library -- but I believe this was before React had their own way to achieve this.)
+`npm install --save lodash`
+`import _ from "lodash"`
+
+We attempt to memoize our fetchUser function:
+
+```js
+// Memoized version
+export const fetchUser = function (id) {
+  return _.memoize(async function (dispatch) {
+    const response = await jsonPlaceholder.get(`/users/${id}`);
+    dispatch({ type: 'FETCH_USER', payload: response.data });
+  });
+};
+```
+
+But we are still making duplicate requests! Why is this? Every time we call `fetchUser` we are re-creating the inner function, and then memozing it. So we are memoizing a _new_ version of the function every time we call the action creator. Let's fix that in the next lesson!
+
+### One Time Memoization
+
+We need to define a function _outside_ of our action creator that is going to make our request and dispatch our action. This way it only gets memoized one time.
+
+```js
+// Memoized version
+export const fetchUser = (id) => (dispatch) => {
+  _fetchUser(id, dispatch);
+};
+
+const _fetchUser = _.memoize(async (id, dispatch) => {
+  // Fetch a single user based on ID
+  const response = await jsonPlaceholder.get(`/users/${id}`);
+  dispatch({ type: 'FETCH_USER', payload: response.data });
+});
+```
+
+Note we name `_fetchUser` as such to indicate it is a private function, and outside engineers should probably not call it directly.
+We essentially create this private version of the function and copy/paste our old logic into it. And now in the actual `fetchUser` call, we need to pass in an id and dispatch, as well as into the private function. We also move our `async` from the public function to the private one.
+
+The downside of this approach is we cannot refetch a user with the same ID if we ever need to again. So we can only call our action creator once for each unique ID. The syntax is also quite a bit ugly, even if it is a fairly quick way to fix the issue.
+
+### Alternate OVerfetching Solution
+
+Our second solution for eliminating duplicate user GET requests involves creating a new action creator:
+
+`fetchPostsAndUsers`:
+
+- Call "fetchPosts" -> Get list of posts -> Find all unique userID's from list of posts -> Iterate over unique userId's -> Call "FetchUser" with each userID
+
+The twist is we are not going to _replace_ our fetchUser or fetchPosts action creators. We will keep our network request logic inside our two previous action creators, as we still want to keep small, single-purpose action creators for use in other scenarios.
+
+### Action Creators in Action Creators!
+
+This lesson was confusing AF! Here is the code where we use action creators inside another action creator:
+
+```js
+export const fetchPostsAndUsers = () => async (dispatch, getState) => {
+  await dispatch(fetchPosts());
+
+  const userIds = _.uniq(_.map(getState().posts, 'userId'));
+
+  userIds.forEach((id) => dispatch(fetchUser(id)));
+};
+```
+
+- Note we make use of the optional 2nd argument in our action creator: getState. This gives us access to the current state, which we make use of here by grabbing our list of posts.
+- We then use lodash's version of the map function, which iteratres though all the 'userId' properties in our state's post list
+- We then make use of another lodash function, `_uniq`, which we wrap around our map function. This ensures we only build up a list of unique results (unique userId in our posts)
+- When we dispatch our fetchUser for each unique id, note we don't make use of the `await` keyword like we did when fetching posts. It doesn't matter to us when each request finishes, since we don't have any logic after this point in this action creator.
+  - Even if we did, `await` doesn't work with forEach statements!
+  - `Promise.all(userIds.map(id => dispatch(fetchUser(id))).then()` would be a non-await alternative
+
+### Quick Refactor with Chain
+
+We can refactor our fetchPostsAndUsers logic using lodash's `chain` function:
+
+```js
+export const fetchPostsAndUsers = () => async (dispatch, getState) => {
+  await dispatch(fetchPosts());
+
+  // Refactor using lodash's chain function
+  _.chain(getState().posts)
+    .map('userId')
+    .uniq()
+    .forEach((id) => dispatch(fetchUser(id)))
+    .value();
+};
+```
+
+### App Wrapup
+
+- In index.js, we imported redux-thunk, wired it up to redux store using applyMiddleware, which is a function from redux itself. We passed this middleware call into the second parameter of createStore.
+- This changed the rules of our action creators: We could return action creators that returned functions, rather than just action objects
+- If we returned a function, it would auto called with the dispatch and state arguments
+  - Necessary for API requests!
+- To fix over-fetching, we created an action creator that called other action creators, manually dispatching the results of the inner action creators
+- Learned a lot about reducers! First argument is state, which is whatever the reducer returned the last time it was ran
+- Usually make use of switch statement syntax in reducers
+- Always have to return a new array / new object / different value string / number if we expect Redux to realize we made a change to the data in our app!
+  - If we ever return exact same object or array, Redux thinks no data changes, no update to app, doesn't tell React to re-render or pull new state
+
+### `Section Completed: 12/18/21`
+
 ## Section 20 - Navigation with React Router
 
 ## Section 21 - Handling Authentication with React
@@ -3003,8 +3216,3 @@ export const fetchPosts = () => async (dispatch) => {
 ## Section 36 - React Router + Redux Form v4
 
 ## Section 37 - Extras
-
-# <<<<<<< HEAD
-
-</details>
->>>>>>> 2f09f21541fc6c629d5bb5edbf8b464a24f5c99d
