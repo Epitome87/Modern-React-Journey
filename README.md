@@ -55,8 +55,8 @@ Project Directory:
 Importing the Libraries
 
 ```js
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React from "react";
+import ReactDOM from "react-dom";
 ```
 
 This grabs code from the "react" folder inside the "node_modules" directory. The same with "react-dom".
@@ -87,7 +87,7 @@ Rendering the Component
 
 ```js
 // Render the App component where the HTML element with ID "root" is in the public/index.html file
-ReactDOM.render(<App />, document.querySelector('#root'));
+ReactDOM.render(<App />, document.querySelector("#root"));
 ```
 
 ## Section 2 - Building Content with JSX
@@ -111,7 +111,7 @@ const App = () => {
 
 // ES5 conversion:
 const App = () => {
-  return React.createElement('div', null, 'Hi!');
+  return React.createElement("div", null, "Hi!");
 };
 ```
 
@@ -288,7 +288,7 @@ Example of passing a prop:
 
 ```js
 // Giving CommentDetails an "author" prop
-<CommentDetail author='Matthew' />
+<CommentDetail author="Matthew" />
 ```
 
 - Value of prop isn't just limited to a hard-coded value, or string.
@@ -329,7 +329,7 @@ Wrap content into another Component by using the `props.children` property insid
 ```js
 // In App.js
 <ApprovalCard>
-  <CommentDetail author='Matthew' />
+  <CommentDetail author="Matthew" />
 </ApprovalCard>;
 
 // In ApprovalCard
@@ -606,7 +606,7 @@ In this lesson we just refactored the async geolocation call from the constructo
 Now we can come back and address the second way you can / might see state initialized:
 
 ```js
-state = { latitude: null, errorMessage: '' };
+state = { latitude: null, errorMessage: "" };
 ```
 
 No need for the `this` keyword. We can also drop the constructor, if all we were doing in it is initializing state. Babel converts this to JS code that uses the constructor and calls super behind-the-scenes.
@@ -629,8 +629,8 @@ We need a way to retrieve what season it is. We can create a helper function to 
 
 ```js
 const getSeason = (lat, month) => {
-  if (month > 2 && month < 9) return lat > 0 ? 'summer' : 'winter';
-  return lat > 0 ? 'winter' : 'summer';
+  if (month > 2 && month < 9) return lat > 0 ? "summer" : "winter";
+  return lat > 0 ? "winter" : "summer";
 };
 
 // In SeasonDisplay's functional component
@@ -645,7 +645,7 @@ Instead of using a series of if-else statements in our SeasonDisplay component (
 ```js
 return (
   <div>
-    {season === 'winter' ? "Burr, it's chilly!" : "Let's hit the beach!"}
+    {season === "winter" ? "Burr, it's chilly!" : "Let's hit the beach!"}
   </div>
 );
 ```
@@ -669,11 +669,11 @@ To reduce the use of our rather identical two ternary operators (for determining
 const seasonConfig = {
   summer: {
     text: "Let's hit the beach!",
-    iconName: 'sun',
+    iconName: "sun",
   },
   winter: {
     text: "Burr, it's cold!",
-    iconName: 'snowflake',
+    iconName: "snowflake",
   },
 };
 
@@ -699,7 +699,7 @@ But our spinner's text it just "Loading...". What if we want it different, depen
 ...Well, we can pass a prop to the spinner!
 
 ```js
-return <Spinner message='Please accept location request' />;
+return <Spinner message="Please accept location request" />;
 ```
 
 But what if we forgot to put the message prop in? We won't get any message rendering at all! We should have _some_ default text to fall-back to. We can do this with **default props**:
@@ -710,7 +710,7 @@ const Spinner = (props) => {
 };
 
 Spinner.defaultProps = {
-  message: 'Loading...',
+  message: "Loading...",
 };
 ```
 
@@ -718,7 +718,7 @@ Spinner.defaultProps = {
 
 ```js
 const Spinner = (props) => {
-  this.defaultProps = { message: 'Loading' };
+  this.defaultProps = { message: "Loading" };
 };
 ```
 
@@ -1008,10 +1008,10 @@ To make our AJAX call, we have two methods when working with axios.get, which re
 
 ```js
 axios
-  .get('https://api.unsplash/com/search/photos', {
+  .get("https://api.unsplash/com/search/photos", {
     params: { query: term },
     headers: {
-      Authorization: 'Client-ID <OurAPIAccessKey>',
+      Authorization: "Client-ID <OurAPIAccessKey>",
     },
   })
   .then((reponse) => console.log(reponse.data.results));
@@ -1447,10 +1447,10 @@ We will go with Option #2, and the **useEffect** hook will allow us to do so!
   - 3 When the component is rendered _for the first time and (whenever it re-renders and some piece of data has changed)_
 
 ```js
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 useEffect(() => {
-  console.log('I was executed!');
+  console.log("I was executed!");
 });
 ```
 
@@ -1469,7 +1469,7 @@ We want to use _useEffect_ to make our Wikipedia API call, both on initial rende
 ```js
 useEffect(() => {
   const search = async () => {
-    await axios.get('whatever');
+    await axios.get("whatever");
   };
 
   search();
@@ -1481,7 +1481,7 @@ useEffect(() => {
 ```js
 useEffect(() => {
   (async () => {
-    await axios.get('whatever');
+    await axios.get("whatever");
   })();
 }, [term]);
 ```
@@ -1490,7 +1490,7 @@ useEffect(() => {
 
 ```js
 useEffect(() => {
-  await axios.get('whatever').then((response) => {
+  await axios.get("whatever").then((response) => {
     console.log(response.data);
   });
 }, [term]);
@@ -1503,12 +1503,12 @@ Let's make our actual Wikipedia API request! Remember, when we pass axios.get a 
 ```js
 useEffect(() => {
   const search = async () => {
-    await axios.get('https://en.wikipedia.org/w/api.php', {
+    await axios.get("https://en.wikipedia.org/w/api.php", {
       params: {
-        action: 'query',
-        list: 'search',
-        origin: '*',
-        format: 'json',
+        action: "query",
+        list: "search",
+        origin: "*",
+        format: "json",
         srsearch: term,
       },
     });
@@ -1678,8 +1678,8 @@ Final solution:
 
 ```js
 const Search = () => {
-  const [term, setTerm] = useState('programming');
-  const [debouncedTerm, setDebouncedTerm] = useState('programming');
+  const [term, setTerm] = useState("programming");
+  const [debouncedTerm, setDebouncedTerm] = useState("programming");
   const [results, setResults] = useState([]);
 
   // Runs when term changes (each onChange of search input)
@@ -1696,12 +1696,12 @@ const Search = () => {
   // Runs when debouncedTerm changes
   useEffect(() => {
     const search = async () => {
-      const { data } = await axios.get('https://en.wikipedia.org/w/api.php', {
+      const { data } = await axios.get("https://en.wikipedia.org/w/api.php", {
         params: {
-          action: 'query',
-          list: 'search',
-          origin: '*',
-          format: 'json',
+          action: "query",
+          list: "search",
+          origin: "*",
+          format: "json",
           srsearch: debouncedTerm,
         },
       });
@@ -1773,7 +1773,7 @@ The solution?
 - A click on _any element_ will bubble up to the body, calling its _onClick_ handler!
 
 ```js
-document.body.addEventListener('click', () => {});
+document.body.addEventListener("click", () => {});
 ```
 
 ### Binding an Event Handler
@@ -1783,7 +1783,7 @@ Where can we set up this event lisener on the body? In a _useEffect_ call in our
 ```js
 useEffect(() => {
   document.body.addEventListener(
-    'click',
+    "click",
     () => {
       setOpen(false);
     },
@@ -2042,10 +2042,10 @@ export default Route;
 // App.js
 return (
   <div>
-    <Route path='/accordion'>
+    <Route path="/accordion">
       <Accordion items={items} />
     </Route>
-    <Route path='/list'>
+    <Route path="/list">
       <Search items={items} />
     </Route>
   </div>
@@ -2106,13 +2106,13 @@ const Route = ({ path, children }) => {
 
   useEffect(() => {
     const onLocationChange = () => {
-      console.log('Location Changed!');
+      console.log("Location Changed!");
       setCurrentPath(window.location.pathname);
     };
-    window.addEventListener('popstate', onLocationChange);
+    window.addEventListener("popstate", onLocationChange);
 
     return () => {
-      window.removeEventListener('popstate', onLocationChange);
+      window.removeEventListener("popstate", onLocationChange);
     };
   }, []);
 
@@ -2209,8 +2209,8 @@ Looking at our video searching app, we can identify our inputs (default search t
 - Can return our outputs as either an array (the React way) or an Object (more of a JS way)
 
 ```js
-import { useEffect, useState } from 'react';
-import youtube from '../apis/youtube';
+import { useEffect, useState } from "react";
+import youtube from "../apis/youtube";
 
 const useVideos = (defaultSearchTerm) => {
   const [videos, setVideos] = useState([]);
@@ -2220,7 +2220,7 @@ const useVideos = (defaultSearchTerm) => {
   }, [defaultSearchTerm]);
 
   const search = async (term) => {
-    const response = await youtube.get('/search', {
+    const response = await youtube.get("/search", {
       params: {
         q: term,
       },
@@ -2241,7 +2241,7 @@ export default useVideos;
 ```js
 const App = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [videos, search] = useVideos('buildings');
+  const [videos, search] = useVideos("buildings");
 
   useEffect(() => {
     setSelectedVideo(videos[0]);
@@ -2444,7 +2444,7 @@ The _dispatch_ part of the process is part of Redux itself.
 ```js
 // Reducers (Departments!)
 const claimsHistory = (oldListOfClaims = [], action) => {
-  if (action.type === 'CREATE_CLAIM') {
+  if (action.type === "CREATE_CLAIM") {
     // We care about this Action ("form")!
     return [...oldListOfClaims, action.payload];
   }
@@ -2454,9 +2454,9 @@ const claimsHistory = (oldListOfClaims = [], action) => {
 };
 
 const accounting = (bagOfMoney = 100, action) => {
-  if (action.type === 'CREATE_CLAIM') {
+  if (action.type === "CREATE_CLAIM") {
     return bagOfMoney - action.amountToCollect;
-  } else if (action.type === 'CREATE_POLICY') {
+  } else if (action.type === "CREATE_POLICY") {
     return bagOfMoney + action.amountToCollect;
   }
 
@@ -2464,9 +2464,9 @@ const accounting = (bagOfMoney = 100, action) => {
 };
 
 const policies = (listOfPolicies = [], action) => {
-  if (action.type === 'CREATE_POLICY') {
+  if (action.type === "CREATE_POLICY") {
     return [...listOfPolicies, action.payload.name];
-  } else if (action.type === 'DELETE_POLICY') {
+  } else if (action.type === "DELETE_POLICY") {
     return listOfPolicies.filter((name) => name !== action.payload.name);
   }
 
@@ -2496,14 +2496,14 @@ const ourDepartments = combineReducers({
 
 const store = createStore(ourDepartments);
 
-const action = createPolicy('Matthew', 20);
+const action = createPolicy("Matthew", 20);
 
 store.dispatch(action); // Alert each department of this action
 store.getState(); // { accounting: 120, claimsHistory: [], policies: [ "Matthew" ]}
 
-store.dispatch(createPolicy('Caitlin', 15));
-store.dispatch(createPolicy('Daniel', 30)); // { accounting: 165, policies: [ "Matthew", "Caitlin", "Daniel "] }
-store.dispatch(createClaim('Matthew', 120)); // { accounting: 45, policies: [ "Matthew", "Caitlin", "Daniel" ], claimsHistory: { name: "Matthew", amountToCollect: 120 }}
+store.dispatch(createPolicy("Caitlin", 15));
+store.dispatch(createPolicy("Daniel", 30)); // { accounting: 165, policies: [ "Matthew", "Caitlin", "Daniel "] }
+store.dispatch(createClaim("Matthew", 120)); // { accounting: 45, policies: [ "Matthew", "Caitlin", "Daniel" ], claimsHistory: { name: "Matthew", amountToCollect: 120 }}
 ```
 
 - Store object represents our entire Redux app. Contains references to all our Reducers, and all the data produced by those Reducers.
@@ -2601,7 +2601,7 @@ Our Action Creator looks like:
 export const selectSong = (song) => {
   // Return an Action (Plain JS object). Must have a type property, optionally a payload
   return {
-    type: 'SONG_SELECTED',
+    type: "SONG_SELECTED",
     payload: song,
   };
 };
@@ -2614,15 +2614,15 @@ Our Reducers look like:
 ```js
 const songsReducer = (action, payload) => {
   return [
-    { title: 'Uprising', duration: '4:18' },
-    { title: 'No Scrubs', duration: '4:05' },
-    { title: 'All Star', duration: '3:15' },
-    { title: 'I Want It That Way', duration: '1:45' },
+    { title: "Uprising", duration: "4:18" },
+    { title: "No Scrubs", duration: "4:05" },
+    { title: "All Star", duration: "3:15" },
+    { title: "I Want It That Way", duration: "1:45" },
   ];
 };
 
 const selectedSongReducer = (selectedSong = null, action) => {
-  if (action.type === 'SONG_SELECTED') {
+  if (action.type === "SONG_SELECTED") {
     return action.payload;
   }
 
@@ -2644,18 +2644,18 @@ export default combineReducers({
 In our Index.js, we import Provider, createSTore, and our reducers. We then wrap Provider around App, passing to its "store" property and instance of our created store.
 
 ```js
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
-import { createStore } from 'redux';
-import App from './components/App';
-import reducers from './reducers';
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
+import { createStore } from "redux";
+import App from "./components/App";
+import reducers from "./reducers";
 
 ReactDOM.render(
   <Provider store={createStore(reducers)}>
     <App />
   </Provider>,
-  document.querySelector('#root')
+  document.querySelector("#root")
 );
 ```
 
@@ -2663,7 +2663,7 @@ ReactDOM.render(
 
 ```js
 // SongList.js
-import { connect } from 'react-redux';
+import { connect } from "react-redux";
 export default connect()(SongList);
 ```
 
@@ -2672,7 +2672,7 @@ The above code looks pretty odd! But it is perfectly valid JavaScript syntax. It
 ```js
 function connect() {
   return function () {
-    return 'Hi there!';
+    return "Hi there!";
   };
 }
 
@@ -2798,7 +2798,7 @@ In the list above, we will cover the 1st three steps by doing the following:
 ```js
 export const fetchPosts = () => {
   return {
-    type: 'FETCH_POSTS',
+    type: "FETCH_POSTS",
   };
 };
 ```
@@ -2806,9 +2806,9 @@ export const fetchPosts = () => {
 - Use that Action Creator in PostList:
 
 ```js
-import React, { useEffect } from 'react';
-import { connect } from 'react-redux';
-import { fetchPosts } from '../actions';
+import React, { useEffect } from "react";
+import { connect } from "react-redux";
+import { fetchPosts } from "../actions";
 
 const PostList = (props) => {
   useEffect(() => {
@@ -2829,14 +2829,14 @@ We now move onto the next 3 steps.
 We create a custom, pre-configured axios object and import it into our action creator file, where we will make a GET request:
 
 ```js
-import jsonPlaceholder from '../apis/jsonPlaceholder';
+import jsonPlaceholder from "../apis/jsonPlaceholder";
 
 export const fetchPosts = async () => {
   // Bad approach! Breaking rules of Redux! Breaking rules of Action Creator: "Actions must be plain objects"! "Use custom middleware for async actions"!
-  const response = await jsonPlaceholder.get('/posts');
+  const response = await jsonPlaceholder.get("/posts");
 
   return {
-    type: 'FETCH_POSTS',
+    type: "FETCH_POSTS",
     payload: response,
   };
 };
@@ -2861,8 +2861,8 @@ What if we just remove async / await from the action creator?
 
 ```js
 export const fetchPosts = () => {
-  const promise = jsonPlaceholder.get('/posts');
-  return { type: 'FETCH_POSTS', payload: promise };
+  const promise = jsonPlaceholder.get("/posts");
+  return { type: "FETCH_POSTS", payload: promise };
 };
 ```
 
@@ -2921,10 +2921,10 @@ How does this help us, though? If whatever is passed to Redux Thunk is a typical
 ```js
 export const fetchPosts = () => {
   return async function (dispatch, getState) {
-    const response = await jsonPlaceholder.get('/posts');
+    const response = await jsonPlaceholder.get("/posts");
 
     // We MANUALLY dispatch when appropriate (after we await response)
-    dispatch({ type: 'FETCH_POSTS', payload: response });
+    dispatch({ type: "FETCH_POSTS", payload: response });
   };
 };
 ```
@@ -2938,10 +2938,10 @@ _Redux Thunk is only 14 lines of code!_
 To use Thunk, we can import it with `import thunk from "redux-thunk"`. Since it is a middleware, which we need to attach to Redux, we will also need to import: `import { applyMiddleware } from "redux"`. Lastly, when we create our store, we pass not only our reducers, but also `applyMiddleware(thunk)`:
 
 ```js
-import { Provider } from 'react-redux';
-import { createStore, applyMiddleware } from 'redux';
-import thunk from 'redux-thunk';
-import reducers from './reducers';
+import { Provider } from "react-redux";
+import { createStore, applyMiddleware } from "redux";
+import thunk from "redux-thunk";
+import reducers from "./reducers";
 
 const store = createStore(reducers, applyMiddleware(thunk));
 
@@ -2949,7 +2949,7 @@ ReactDOM.render(
   <Provider store={store}>
     <App />
   </Provider>,
-  document.querySelector('#root')
+  document.querySelector("#root")
 );
 ```
 
@@ -2957,8 +2957,8 @@ We can also clean up our action creator syntax quite a bit using ES2015 pieces o
 
 ```js
 export const fetchPosts = () => async (dispatch) => {
-  const response = await jsonPlaceholder.get('/posts');
-  dispatch({ type: 'FETCH_POSTS', payload: response });
+  const response = await jsonPlaceholder.get("/posts");
+  dispatch({ type: "FETCH_POSTS", payload: response });
 };
 ```
 
@@ -3007,9 +3007,9 @@ In the context of JS, pushing an element into an Array is a mutation. Or if we r
 Inside of JS, strings and numbers are _immutable_ values; we cannot change them like we can arrays and objects. Consider:
 
 ```js
-const name = 'Matthew';
+const name = "Matthew";
 name[0]; // "M"
-name[0] = 'X'; // No errors, but...
+name[0] = "X"; // No errors, but...
 name; // Name is still "Matthew", so we did not actually change the first letter
 ```
 
@@ -3088,7 +3088,7 @@ We attempt to memoize our fetchUser function:
 export const fetchUser = function (id) {
   return _.memoize(async function (dispatch) {
     const response = await jsonPlaceholder.get(`/users/${id}`);
-    dispatch({ type: 'FETCH_USER', payload: response.data });
+    dispatch({ type: "FETCH_USER", payload: response.data });
   });
 };
 ```
@@ -3108,7 +3108,7 @@ export const fetchUser = (id) => (dispatch) => {
 const _fetchUser = _.memoize(async (id, dispatch) => {
   // Fetch a single user based on ID
   const response = await jsonPlaceholder.get(`/users/${id}`);
-  dispatch({ type: 'FETCH_USER', payload: response.data });
+  dispatch({ type: "FETCH_USER", payload: response.data });
 });
 ```
 
@@ -3135,7 +3135,7 @@ This lesson was confusing AF! Here is the code where we use action creators insi
 export const fetchPostsAndUsers = () => async (dispatch, getState) => {
   await dispatch(fetchPosts());
 
-  const userIds = _.uniq(_.map(getState().posts, 'userId'));
+  const userIds = _.uniq(_.map(getState().posts, "userId"));
 
   userIds.forEach((id) => dispatch(fetchUser(id)));
 };
@@ -3158,7 +3158,7 @@ export const fetchPostsAndUsers = () => async (dispatch, getState) => {
 
   // Refactor using lodash's chain function
   _.chain(getState().posts)
-    .map('userId')
+    .map("userId")
     .uniq()
     .forEach((id) => dispatch(fetchUser(id)))
     .value();
@@ -3181,7 +3181,135 @@ export const fetchPostsAndUsers = () => async (dispatch, getState) => {
 
 ## Section 20 - Navigation with React Router
 
+### `Originally Started: 12/19/2021`
+
+### App Overview
+
+- This app is going to _look_ really complicated, but at its core it is going to be straightforward to build
+- Our focus is going to be on React/Redux, not any complicated backend pieces
+
+We will be building a clone of Twitch! We will only build the basics of the core experience of streaming video. We will be able to stream video from our desktop. But the actual Twitch backend is extremely complex, with years of man-power!
+
+Behind-the-Scenes of Twitch
+
+Streamer's Computer:
+
+- Running software (like Open Broadcaster Software, OBS)
+- This records your desktop and streams it to some outside server
+- Sends a video stream + stream key to an RTMP...
+- Real Time Messaging Protocol (RTMP) Server: Recieves incoming video feed, broadcasts it to outside viewers, who can watch from their browsers
+
+The RTMP server will be fairly easy for our app, since we will use a third party for help!
+
+On top of the RTMP server, we need another API server that knows which streams are currently broadcasting, and can convey that information to the viewer's browser. It will simply store a list of all the different channels available in our app. The viewer's browser makes request to get a specific video feed from the RTMP server.
+
+So we have three main components:
+
+- React app running in user's browser
+- Tiny API server that lists all the streams / channels
+- RTMP server responsible for the streaming itself
+
+### Mockups in Detail
+
+- Main landing page
+  - Shows list of streams, with their stream name and description of stream
+  - Clicking on a stream takes user to a detail page...
+- Stream Detail Page
+  - Shows video player, steram title, description
+
+Our app will be (obviously) different than Twitch
+With Twitch...
+
+- Every user has one stream/channel they can stream to
+
+With our App...
+
+- Every user can create unlimited channels/streams that they can stream to
+
+User is **not** logged in:
+
+- User can view a list of all streams/channels
+- User can view video for a single stream
+
+User **is** logged in:
+
+- User can create a new stream/channel
+- User can **edit** a stream/channel they have created
+- User can **Delete** a stream/channel they have created
+
+- Landing Page (While Signed In)
+  - Any stream this user has created will have additional buttons shown for Delete / Edit
+  - Button for Creating a Stream
+- Delete Stream Page
+  - Modal asking if they're sure they want to delete
+- Create Stream Page
+  - Form asking for stream title and description, Submit button
+
 ## Section 21 - Handling Authentication with React
+
+### `Originally Started: 12/19/2021`
+
+### OAuth-Based Authentication
+
+Email/Password Authentication
+
+- We store a record in a database with the user's email and password
+- When the user tries to login, we compare email/pass with whats stored in database
+- A user is "logged in" when they enter the correct email/password
+
+OAuth Authentication
+
+- User authenticates with outside service provider (Google, LinkedIn, Facebook)
+- User authorizes our app to access their information
+- Outside provider tells us about the user
+- We are trusting the outside provider to correctly handle identification of a user
+- OAuth can be used for (1) user identification in our app (like with email/password auth) and (2) our app making actions on behalf of user (manage user's email account, try to read their emails).
+
+If we were to use OAuth to make actions on behalf of a user, we alert the user to what our app wants to do with the user's account. This is called the _list of scopes_ -- permissions you are granting to an application. Can see list of all scopes at: `developers.google.com/identity/protocols/googlescopes` (or Google search OAuth Scope List)
+
+### OAuth for Servers vs Browser Apps
+
+OAuth for Servers
+
+- Results in a "token" that a server can use to make requests on behalf of the user
+- _Usually_ used when we have an app that needs to access user data **when they are not logged in**
+- Difficult to setup because we need to store a lot of info about the user
+- (Example: App where we want to access user's email every 10 minutes, regardless of if they're logged in or not)
+
+OAuth for JS Browser Apps
+
+- Results in a _token_ that a browser app can use to make requests on behalf of the user
+- _Usually_ used when we have an app that only needs to access user data **while they are logged in**
+- Very easy to set up thanks to Google's JS lib to automate flow
+
+We will be going for the second flow, for OAuth in browser apps. The flow looks like:
+
+| User's Browser                                                          | Google's Servers                                            |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------- |
+| User clicks "Login with Google" button                                  |                                                             |
+| We use Google's JS lib to initiate OAuth process -->                    | Google's JS lib makes auth request to Google                |
+|                                                                         | Google displays confirmation screen to user in popup window |
+|                                                                         | User accepts                                                |
+| Google's JS lib invokes a callback our React/Redux app                  | <-- Popup window closes                                     |
+| Callback provided with "authentication" token and profile into the user |                                                             |
+
+If user ever happens to log out of our app / Google's servers, we get another callback invoked ("This user logged out") -- so we have to wire our app to listen to that event as well.
+
+### Creating OAuth Credentials
+
+Steps for Setting Up OAuth
+
+- Create a new project at `console.developers.google.com/`
+- Set up an OAuth confirmation screen
+- Generate an OAuth Client ID
+- Install Google's API library, initialize it with the OAuth Client ID
+- Make sure the lib gets called any time the user clicks on the "Login With Google" button
+
+### Wiring Up the Google API Library
+
+Google's library is not available over NPM, so we have to add it via a script tag to our index.html file.
+
+### Sending a User Into the OAuth Flow
 
 ## Section 22 - Redux Dev Tools
 
