@@ -3243,7 +3243,67 @@ User **is** logged in:
 - Delete Stream Page
   - Modal asking if they're sure they want to delete
 - Create Stream Page
-  - Form asking for stream title and description, Submit button
+  - Form asking for stream title and description, Submit
+
+### App Challenges
+
+- Need to be able to navigate around to separate pages in our app
+- Need to allow a user to login/logout
+- Need to handle forms in Redux
+- Need to master CRUD operations in React/Redux
+- Errors will likely occur! Need good error handling
+
+### Introducing React Router
+
+react-router: Core navigation lib - we don't install this manually
+react-router-dom: Navigation for dom-based apps
+react-router-native: Navigation for react-native apps
+react-router-redux: Bindings between Redux and React Router (not necessary)
+
+### Hot NOT to Navigate with React Router
+
+Never use anchor tags! This will...
+
+- Cause browser to make a request to the page referenced in the anchor's href
+- Development server will respond with index.html file
+- Browser will receive index.html file, dump old HTML file it was showing (including all the React/Redux state data)
+- index.html file lists our JS files in script tags -- browser downloads and executes these scripts
+- Our app starts up again
+
+### Navigating with React Router
+
+When user wants to navigate to another page on our app...
+
+- User clicks a "Link" tag
+- React Router prevents the browser from navigation to the new page and fetching new index.html file!
+- URL still changes
+- "History"sees updated URL, takes URL and sends it to BrowserRouter
+- BrowserRouter communicates the URL to Route components
+- Route components re-render to show new set of components
+
+### Optional - Different Router Types
+
+React-Router has 3 different router types:
+
+- BrowserRouter: Uses everything after the top-level domain (TLD) (.com, .net) or port as the "path" -> localhost:3000 **/pagetwo**
+- HashRouter: Uses everything after a # as the "path" -> localhost:3000 **/#/pagetwo**
+- MemoryRouter: Doesn't use the URL to track navigation -> localhost:3000 **/**
+
+Unlike a traditional server, our Create-React-App Dev server does not respond with a 404 error when it fails to locate a route. Instead, it simply serves up the index.html file. That's the key to how BrowserRouter works.
+
+### Component Scaffolding
+
+Potential components:
+
+- StreamList
+- StreamShow
+- StreamCreate
+- StreamEdit
+- StreamDelete
+
+### Always Visible Components
+
+We can define a Header component _outside_ of BrowserRouter tag, so it is always visible regardless of the URL.
 
 ## Section 21 - Handling Authentication with React
 
