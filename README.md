@@ -3400,7 +3400,7 @@ auth.signIn(); // Manually sign in
 auth.isSignedIn.get(); // True now!
 ```
 
-### RenderingAuthentication Status
+### Rendering Authentication Status
 
 Auth Component
 
@@ -3409,26 +3409,76 @@ Auth Component
 - Print their authentication status on the screen
 
 ```js
-  const [auth, setAuth] = useState(null);
-  const [isSignedIn, setIsSignedIn] = useState(null);
+const [auth, setAuth] = useState(null);
+const [isSignedIn, setIsSignedIn] = useState(null);
 
-  useEffect(() => {
-    window.gapi.load("client:auth2", () => {
-      // Inside Callback for when Library finished loading
-      window.gapi.client
-        .init({
-          clientId:
-            "129753933363-qego7o5vvdiagb2lo282qgtpud9rtrvu.apps.googleusercontent.com",
-          scope: "email",
-        })
-        .then(() => {
-          //   Lib successfully initialized
-          setAuth(window.gapi.auth2.getAuthInstance());
-          setIsSignedIn(auth.isSignedIn.get());
-        });
-    });
-  }, []);
+useEffect(() => {
+  window.gapi.load("client:auth2", () => {
+    // Inside Callback for when Library finished loading
+    window.gapi.client
+      .init({
+        clientId:
+          "129753933363-qego7o5vvdiagb2lo282qgtpud9rtrvu.apps.googleusercontent.com",
+        scope: "email",
+      })
+      .then(() => {
+        //   Lib successfully initialized
+        setAuth(window.gapi.auth2.getAuthInstance());
+        setIsSignedIn(auth.isSignedIn.get());
+      });
+  });
+}, []);
 ```
+
+### Redux Architecture Design
+
+The design we will go to, since it keeps all Google Auth logic centralized for demo purposes:
+
+Redux Store
+
+- Has our Auth State
+- Flows "isSignedIn: true/false" to GoogleAuth component
+
+Action Creators
+
+- Has signIn()
+- Has signOut()
+- Flow these methods to Redux Store
+
+GoogleAuth Component
+
+- onSignInClick()
+- onSignOutClick()
+- onAuthChange()
+  - Flows to signIn/signOut in Action Creators
+
+GAPI Auth2 instance, accessed in GoogleAuth onSignOutClick / onSignInClick
+
+Alternate design, more in line with Redux conventions, but spreads our Auth logic out (which isn't bad, but for teaching puroses isn't ideal):
+
+Redux Store
+
+- Has Auth State
+
+Action Creators
+
+- changeAuth()
+  - Flows into Redux Store's Auth State
+- trySignIn()
+  - Flows into GAPI Auth2 instance
+- trySignOut()
+  - Flows into GAPI Auth2 instance
+
+GoogleAuth Component
+
+- onSignInClick()
+  - Flows to Action Creator's trySignIn
+- onSignOutClick()
+  - Flows to Action Creator's trySignOut
+
+GAPI Auth2 Instance
+
+- Flows into Action Creators' changeAuth()
 
 ## Section 22 - Redux Dev Tools
 
