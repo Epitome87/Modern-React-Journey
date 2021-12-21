@@ -3303,7 +3303,11 @@ Potential components:
 
 ### Always Visible Components
 
-We can define a Header component _outside_ of BrowserRouter tag, so it is always visible regardless of the URL.
+We can define a Header component _outside_ of BrowserRouter tag in our App component, so it is always visible regardless of the URL.
+
+### Links Inside Router
+
+However, if our always-visible component needs access to things like NavLink or Link, we need to make the component a child of BrowserRouter. In other words, the component can be inside BrowserRouter, but outside of a specific Route, and still be always-visible.
 
 ## Section 21 - Handling Authentication with React
 
@@ -3367,9 +3371,64 @@ Steps for Setting Up OAuth
 
 ### Wiring Up the Google API Library
 
-Google's library is not available over NPM, so we have to add it via a script tag to our index.html file.
+Google's library is not available over NPM, so we have to add it via a script tag to our index.html file: `<script src="https:apis.google.com/js/api.js"></script>`
+
+We now have access to a `gapi` object in our developer console. It is a multi-purpose Google API library. Can use it for OAuth flow and other Google services. A lot of websites load up this library, so Google tries to keep it as small as possible. Before we can use some particular aspect / functionality of the lib, we have to first load up some JS code related to the part we want to use. We do so with: `gapi.load("client:auth2")` since we want auth functionality.
+
+We can now register / initialize it with: `gapi.client.init({ clientId: <ourClientID>})`
+
+In React, we would initialize the library in our GoogleAuth component with a useEffect call:
+
+```js
+useEffect(() => {
+  window.gapi.load("client:auth2", () => {
+    // Inside Callback for when Library finished loading
+    window.gapi.client.init({
+      clientId:
+        "129753933363-qego7o5vvdiagb2lo282qgtpud9rtrvu.apps.googleusercontent.com",
+      scope: "email",
+    });
+  });
+}, []);
+```
 
 ### Sending a User Into the OAuth Flow
+
+```js
+const auth = gapi.auth2.getAuthInstance(); // Create instance of Auth
+auth.signIn(); // Manually sign in
+auth.isSignedIn.get(); // True now!
+```
+
+### RenderingAuthentication Status
+
+Auth Component
+
+- Get a reference to the "auth" object after it is initialized
+- Figure out if the user is currently signed in
+- Print their authentication status on the screen
+
+```js
+  const [auth, setAuth] = useState(null);
+  const [isSignedIn, setIsSignedIn] = useState(null);
+
+  useEffect(() => {
+    window.gapi.load("client:auth2", () => {
+      // Inside Callback for when Library finished loading
+      window.gapi.client
+        .init({
+          clientId:
+            "129753933363-qego7o5vvdiagb2lo282qgtpud9rtrvu.apps.googleusercontent.com",
+          scope: "email",
+        })
+        .then(() => {
+          //   Lib successfully initialized
+          setAuth(window.gapi.auth2.getAuthInstance());
+          setIsSignedIn(auth.isSignedIn.get());
+        });
+    });
+  }, []);
+```
 
 ## Section 22 - Redux Dev Tools
 

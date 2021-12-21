@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import GoogleAuth from "./GoogleAuth";
 
 function Header() {
   return (
@@ -11,6 +12,7 @@ function Header() {
         <NavLink to="/" className="item">
           All Streams
         </NavLink>
+        <GoogleAuth />
       </div>
     </div>
   );
