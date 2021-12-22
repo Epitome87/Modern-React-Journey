@@ -3505,6 +3505,175 @@ Make sure to remove the query string out of the URL when you are done debugging.
 
 ## Section 23 - Handling Forms with Redux Form
 
+### `Originally Started: 12/21/2021`
+
+### Forms with Redux Form
+
+We will be using a library called Redux Form. Install it via: `npm install --save redux-form`
+
+- Does a lot of stuff for us automatically!
+- Can be challenging to understand
+
+Handling Inputs with Redux Form
+
+Redux Store:
+
+- Redux Form Reducer
+  - Flows (Redux Form mapStateToProps) to the Component's props
+  - Receives Redux Form Action Creator from Component's handler
+
+Component:
+
+- props
+  - Receives Redux Form mapStateToProps from Redux Form Reducer
+  - Flows into DOM's "value" property
+- handler
+  - Flows into Redux Form Action Creator
+  - Receives DOM's onChange property
+
+DOM:
+
+- Input Element:
+  - value
+    - Receives from Component's props property
+  - onChange
+    - Flows into Component's handler
+
+In the above Redux Form flow, Redux form does everything other than the DOM for us!
+
+- All our form data will exist in our Redux Store
+- All our form data will be maintained by a reducer
+- To ensure we can get data from store into our input elements, we will have something like mapStateToProps and get it into our Component, as props
+- We make sure we take that props object and pass them into our different input elements as values
+- Any time user makes change to an input element, a callback handler inside our Component will call an action creator and try to update our form data in our Redux store
+- All this is taken care by Redux Form for us!
+- Redux Form has a reducer that we will wire up to our app; we don't write it ourselves! We won't write any mapStateToProps functions! We won't write any action creators! All of this is automatically done for us with Redux Form!
+
+### Useful Redux Form Examples
+
+Redux Form has outstanding documentation -- so make use of it! `redux-form.com`
+Here we can find many examples covering various types of forms we may want to develop. THe _Wizard Form_ example is especially useful.
+
+### Connecting Redux Form
+
+We import a reducer that Redux Form provides to us automatically, and then we give it a **mandatory** key of "form" inside our `combineReducers` method:
+
+```js
+// /reducers/index.js
+import { reducer } from 'redux-form';
+
+export default combineReducers({ form: reducer });
+```
+
+It might be helpful to create an alias when we import `reducer`, as the name is rather generic and could conflict with others we have. We do this simply: `import { reducer as formReducer } from "redux-form";` We now refer to the reducer function as "formReducer", but we could have named it whatever we liked.
+
+### Creating Forms
+
+To create a form, we import `Field` and `reduxForm` from "redux-form".
+
+- Field is a Component that essentially provides us with all the functionality we need to work with forms in Redux
+- reduxForm works similiary to the `connect` method in Redux, where we call it as a function when exporting our Component, and that method call returns a function which then receives our component as an argument.
+- A Field component **must** have a `name` property, which we name after whatever the input is for (i.e a name, email, description)
+- A field component can also receive a `component` property, which should be linked to some sort of JSX that serves as the input we want to render and work with.
+- This input given into the `component` property of the Field component automatically receives an argument that represents all of the form's props. We use this prop object in our defined input tag in order to link up the input's value and onChange events.
+- We can use object destructuring to spread out every key/value pair in the form props object into our input tag, since we typically want access to more than just the value and onChange event.
+
+```js
+import React from 'react';
+import { Field, reduxForm } from 'redux-form';
+
+function StreamCreate() {
+  const renderInput = (formProps) => {
+    return (
+      // <input
+      //   type='text'
+      //   value={formProps.input.value}
+      //   onChange={formProps.input.onChange}
+      // />
+      <input {...formProps.input} />
+    );
+  };
+
+  return (
+    <form>
+      <Field name='title' component={renderInput} />
+      <Field name='description' component={renderInput} />
+    </form>
+  );
+}
+
+export default reduxForm({
+  form: 'streamCreate',
+})(StreamCreate);
+```
+
+**VERY IMPORTANT**
+I was having my input lose focus after the first key press. This was because the `renderInput` function was being re-called every render, which makes React treat it as new and unmount / remount it. To solve this, I defined it outside of the scope of the `StreamCreate` component.
+
+### Handling Form Submission
+
+To handle form submittion with Redux Form, we (as typically) wire up `onSubmit` prop on our form element, but this time we don't directly link it up to our function for handling form submission. Instead, we hook it up to `props.handleSubmit`, and pass that function (provided for us automatically via props thanks to Redux Form) our form submission handler function. In our form submittion event handler, we no longer receive the event object automatically as an argument, but rather an object with all our form values. We also don't have to call `event.preventDefault()`, as Redux Form will do that for us.
+
+```js
+function onSubmit(formValues) {
+  console.log(formValues); // We see the values typed in for our two input fields
+}
+<form onSubmit={props.handleSubmit(onSubmit)}>
+```
+
+### Validation of Form Inputs
+
+To validate form inputs in Redux Form, we create a helper function that will accept all the values of a form. Inside of it, we return an object where each invalid input is a key, and the value is the error description. We then return this object. If the object is empty, it means there were no invalid inputs.
+
+```js
+
+const validateForm = (formValues) => {
+  const { title, description } = formValues;
+  const errorObj = {};
+
+  if (!title) errorObj.title = 'You must enter a title";
+  if (!description) errorObj.description = 'You must enter a description';
+
+  return errorObj;
+};
+
+export default reduxForm({ form: 'streamCreate', validate: validateForm})(StreamCreate);
+```
+
+### Displaying Validation Messages
+
+With the previous validation function hooked up to our form, Redux Form will go through every Field component, check if the `name` property on it matches any of the keys in our validation method's returned error object, and if so we will have access to that error. We gain access to it by tapping into the `meta` property that is automatically passed to the function we set as the `component` property on the Field tag. In this case, this is our _renderInput_ method. We can then print the error to the screen:
+
+```js
+const renderInput = ({ input, label, meta }) => {
+  return (
+    <div className='field'>
+      <label htmlFor={input.name}>{label}</label>
+      <input id={input.name} {...input} />
+      <div>{meta.error}</div>
+    </div>
+  );
+};
+
+// Down here we have <Field component={renderINput} />
+```
+
+Validation takes place automatically after each re-render, even when we first visit the form we will get error messages. Let's make it where the error messages only shows when a field is focused and unfocused!
+
+### Showing Errors on Touch
+
+To show errors only when the user has _touched_ an input, Redux Form keeps track of such a behavior in the `meta` object it passes to our component render method:
+
+```js
+if (meta.touched && meta.error) {
+  // Do invalid input logic, e.g displaying error message below field, turning the input field red, etc
+}
+```
+
+### Highlighting Errored Fields
+
+In the previous lesson, we never see our error message show up after we gave our error message div a class of "error" with Semantic UI. This is simply because Semantic UI, by default, has the display set to "none" for such classes. To make them visible, we must also add the "error" class to the form element itself.
+
 ## Section 24 - REST-Based React Apps
 
 ## Section 25 - Using React Portals
