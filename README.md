@@ -3674,7 +3674,504 @@ if (meta.touched && meta.error) {
 
 In the previous lesson, we never see our error message show up after we gave our error message div a class of "error" with Semantic UI. This is simply because Semantic UI, by default, has the display set to "none" for such classes. To make them visible, we must also add the "error" class to the form element itself.
 
+### `Section Completed: 12/22/2021`
+
 ## Section 24 - REST-Based React Apps
+
+### `Originally Started: 12/22/2021`
+
+### Creating Streams
+
+This lengthy section will go over the process of getting a stream to be created, by creating an API Server!
+
+### REST-ful Conventions
+
+We will be using `json-server` to help put our server together, rather than creating our own Node/Express server.
+
+JSON Server
+
+- Get a full fake REST API with zero coding in less than 30 seconds!
+- Install with `npm install json-server`
+- Strict adherence to REST-ful conventions
+
+REST Conventions
+
+- Standarized system (routes / request methods) for designing APIs
+
+Following REST-ful conventions, our app might look like:
+
+| Action                    | Method | Route        |
+| ------------------------- | ------ | ------------ |
+| List all records          | GET    | /streams     |
+| Get one particular record | GET    | /streams/:id |
+| Create record             | POST   | /streams     |
+| Update a record           | PUT    | /streams/:id |
+| Delete a record           | DELETE | /streams/:id |
+
+### Setting Up an API Server
+
+- We install json-server
+- We create a "db.json" file, and fill it up with an object with a "streams" property set to an empty array
+- In our package.json, we create a new key under "scripts": `"star": "json-server -p 3001 -w db.json"` to start our json-server on port 3001, watching the db.json file for any changes
+
+And that's literally all the code we write to get our server up and running!
+
+We can now use this json server to manipulate the list of streams stored in our API server by following REST-ful conventions.
+
+### Creating Streams Through Action Creators
+
+Create a special instance of axios, with the base URL set to our json server:
+
+```js
+// apis/streams.js
+import axios from 'axios';
+export default axios.create({
+  baseURL: 'http://localhost:3001',
+});
+```
+
+Create our action for creating a stream (unfinished). It returns a function, so Redux-Thunk will handle it (remember to import it in our index.js file, and pass it to `applyMiddleware`, which is passed into `createStore`):
+
+```js
+// actions/index.js
+export const createStream = (formValues) => {
+  return async (dispatch) => {
+    streams.post('/streams', formValues);
+  };
+};
+```
+
+Now in StreamCreate.jsx we have to wrap our Component export with the `connect` function from "react-redux". _But_ we are already wrapping our component with reduxForm...what do we do?!
+
+### Creating a Stream with REST Conventions
+
+It's pretty simple, we can just add `connect()` before the other stuff, and then wrap the other stuff with an opening and closing parenthesis. We could also create a variable to store the first version of the wrapped component (wrapped in reduxForm) and then wrap that variable in "connect()":
+
+```js
+const formWrapped = reduxForm({
+  form: 'streamCreate',
+  validate: validateForm,
+})(StreamCreate);
+
+export default connect(null, { createStream })(formWrapped);
+```
+
+Now let's have our StreamCreate form actually create something!
+
+```js
+function StreamCreate(props) {
+  const onSubmit = (formValues) => {
+    props.createStream(formValues);
+  };
+```
+
+With our createStream action wired up to Redux, and therefore accessible via a prop in our component, we call it with the form values automatically given to us by Redux Form in our onSubmit function (hooked up to our form element's onSubmit prop). Now, if our JSON Server is up and running, filling out this form and submitting it will make a POST request to our JSON Server, which then adds the form values to a new object in our "streams" array found in "db.json"!
+
+### Dispatching Actions After Stream Creation
+
+```js
+// actions/index.js
+export const createStream = (formValues) => {
+  return async (dispatch) => {
+    const response = await streams.post('/streams', formValues);
+
+    dispatch({
+      type: CREATE_STREAM,
+      payload: response.data,
+    });
+  };
+};
+```
+
+**Don't forget!** We must manually call dispatch when returning our action object!
+
+### Bulk Action Creators
+
+Let's create all our action creators related to our Streams!
+
+```js
+export const createStream = (formValues) => {
+  return async (dispatch) => {
+    const response = await streams.post('/streams', formValues);
+
+    dispatch({
+      type: CREATE_STREAM,
+      payload: response.data,
+    });
+  };
+};
+
+export const deleteStream = (streamId) => {
+  return async (dispatch) => {
+    await streams.delete(`/streams/${streamId}`);
+
+    dispatch({
+      type: DELETE_STREAM,
+      payload: streamId,
+    });
+  };
+};
+
+export const editStream = (streamId, formValues) => {
+  return async (dispatch) => {
+    const response = await streams.put(`/streams/${streamId}`, formValues);
+
+    dispatch({
+      type: EDIT_STREAM,
+      payload: response.data,
+    });
+  };
+};
+
+export const fetchStreams = () => {
+  return async (dispatch) => {
+    const response = await streams.get('/streams');
+
+    dispatch({
+      type: FETCH_STREAMS,
+      payload: response.data,
+    });
+  };
+};
+
+export const fetchStream = (streamId) => {
+  return async (dispatch) => {
+    const response = await streams.get(`/streams/${streamId}`);
+
+    dispatch({
+      type: FETCH_STREAM,
+      payload: response.data,
+    });
+  };
+};
+```
+
+### Object-Based Reducers
+
+Rather than returning an array of Streams, we are going to have our Streams Reducer return an object. Each key is the stream ID, and the value is the Stream object itself. This will make creating and accessing records easier, as well as modifying / updating data.
+
+Let's compare how much less code we need to work with Stream state when we work with objects rather than arrays:
+
+```js
+// Array-based approach
+const streamReducer = (state = [], action) => {
+  switch (action.type) {
+    case EDIT_STREAM:
+      return state.map((stream) => {
+        if (stream.id === action.payload.id) {
+          return action.payload;
+        } else return stream;
+      });
+  }
+};
+
+// Object-based approach
+const streamReducer = (state = {}, action) => {
+  switch (action.type) {
+    case EDIT_STREAM:
+      // const newState = { ...state };
+      // newState[action.payload.id] = action.payload;
+      // return newState;
+
+      // With ES2015 syntax!
+      return { ...state, [action.payload.id]: action.payload };
+  }
+};
+```
+
+The syntax above uses **Key Interpolation**, a syntax provided with ES2015. It uses brackets (but does not signify an array!). It allows for a dynamic ID to be used as an object key, in this case the ID of our stream.
+
+### Multiple Sections (Let's just call this Stream Reducers!)
+
+Combining the material of multiple lessons, we build the following as our final Stream Reducer!:
+
+```js
+import {
+  FETCH_STREAMS,
+  FETCH_STREAM,
+  CREATE_STREAM,
+  DELETE_STREAM,
+  EDIT_STREAM,
+} from '../actions/types';
+import _ from 'lodash';
+
+const streamReducer = (state = [], action) => {
+  switch (action.type) {
+    case FETCH_STREAMS:
+      // Our API returns Streams as an array (in action.payload), so we use this lodash method to
+      // essentially map it to an Object, where the key is the value of the "id" property. We then
+      // merge it to the existing streams
+      return { ...state, ..._.mapKeys(action.payload, 'id') };
+    case FETCH_STREAM:
+      return { ...state, [action.payload.id]: action.payload };
+    case CREATE_STREAM:
+      return { ...state, [action.payload.id]: action.payload };
+    case DELETE_STREAM:
+      // Unlike others, action.payload only includes the stream Id, not entire stream obj
+      return _.omit(state, action.payload);
+    case EDIT_STREAM:
+      return { ...state, [action.payload.id]: action.payload };
+    default:
+      return state;
+  }
+};
+
+export default streamReducer;
+```
+
+### Fetching a List of All Streams
+
+In our StreamList, we can finally fetch all the streams! We do this in the `useEffect` call, with `[]` as the dependency array, so it's treated like componentDidMount. Here we simply call `props.fetchStreams`.
+
+### Rendering All Streams
+
+How can we map over our list of streams in StreamList? It is an object now, rather than an array. We can ensure it is an array when we map our state to props!:
+
+```js
+const mapStateToProps = (state) => {
+  return { streams: Object.values(state.streams) };
+};
+```
+
+### Associating Streams with Users
+
+We need to attach a User ID to a stream when it gets created. Thankfully, the function we return from within our action creators automatically gives us access to not only `dispatch` from Redux Thunk, but also `getState`, which we invoke to return the current state of our Redux Store. So now in our post request when creating a new stream, we can pass not just the form values in, but also the user id via: `getState().auth.userId`
+
+### When to Navigate Users
+
+There are essentially two types of navigation we can have in our React apps:
+
+- Intentional Navigation
+  - User clicks on a "Link" component
+- Programmatic Navigation
+  - We run code to forcibly navigate the user through our app
+
+So far, we have only been using intentional navigation. Now, when the user creates a stream, we want to forcibly navigate them back to the stream list page. But we want to do so once our request to backend API to create stream has finished processing -- not just right after we make the call to the API. We don't want the API responding with an error, and have our user be put back to the stream list page before we even realize we had that error! We'd be navigating them away from the form before the error comes back, so they'd have to redo the entire form again once they found out it failed.
+
+### History References
+
+Typically it is easy to dhave programmatic navigation with React-Router. But in this case, we want to use it in our action creator, right after we dispatch our CREATE_STREAM action. To understand why this is a challenge, we must understand React Router better.
+
+When using `BrowserRouter`, it creates a `history` object internally. This object keeps track of our address in the address bar of browser, and communicates any changes to BrowserRouter. The history object also has the ability to change the address as well. We make use of this to programatically navigate. But to do all this, we need BrowserRouter to get a handle of that history object for us, which passes the history object down to our components, which we don't have easy access to in our action creators!
+
+One solution might be to pass the history object from a component which makes use of an action creator down into the action creator's argument list. So for our createStream action, we would pass it "formValues" as before, but also a "history" object reference. This isn't ideal though!
+
+Instead of having BrowserRouter maintain the history object for us, we will create our own instead!
+
+### Creating a Browser History Object
+
+In order to create our own history object, we have to stop using a router type of BrowserRouter, and instead use a plain Router. This will prevent React-Router from creating its own browser-version of history, allowing us to do so ourselves.
+
+(Note: In newest React-Router-Dom, this is actually a tedious process: https://github.com/remix-run/react-router/issues/8264)
+
+### URL-Based Selection
+
+When the user clicks on the "Edit" button to a certain stream, we have two options to how to handle communication of which stream is trying to be edited:
+
+- Selection Reducer
+  - When a user clicks on a stream to edit it, use a "sectionReducer" to record what stream is being edited
+  - We took this aproach with our music app
+- URL-based Selection
+  - Put the ID of the stream being edited in the URL
+  - This approach is possible thanks to our using of React-Router-Dom
+  - We would change our Routes to include the ID of the stream being edited / deleted / shown
+
+URL-based Selection is preferably any time it is possible to use so!
+
+### Component Isolation with React Router
+
+We have unexpected behavior if we type our edit URL directly into the browser, without navigating to it from home page:
+
+- User types in "/streams/edit/3" to address bar, hits enter.
+- User loads up our app.
+- Redux state object is empty!
+- We try to seleect stream with id "3" from state
+- No streams were loaded, so we get undefined!
+- We navigated to "/"
+- StreamList fetches all our streams, updates Redux state
+- We navigate back to "streams/edit/3"
+- We select stream with id of 3
+- Data is now in redux store, so we see the appropriate stream
+
+So we come to an important conclusion...
+
+**IMPORTANT LESSON:**
+With React-Router, each component needs to be designed to work in isolation (fetch its own data!)
+
+We cannot assume that any given component will get access to data that might have gotten loaded up elsewhere previously
+
+### Real Code Re-Use!
+
+We notice there are _a lot_ of similarities between our StreamCreate and StreamEdit components, so let's try to make some shared / re-usable code for them!
+
+We will make three components:
+
+- StreamCreate
+  - onSubmit
+- StreamEdit
+  - onSubmit
+  - initialValues
+- StreamForm
+  - Receives the properties mentioned aboe from the components above
+
+### Refactoring Stream Creation
+
+We will basically copy and paste our current StreamCreate code into a new component, StreamForm, and alter the logic a little.
+
+```js
+// StreamForm
+import React from 'react';
+import { Field, reduxForm } from 'redux-form';
+
+const renderError = (meta) => {
+  const { error, touched } = meta;
+
+  if (touched && error) {
+    return (
+      <div className='ui error message'>
+        <div className='header'>{error}</div>
+      </div>
+    );
+  }
+};
+
+const renderInput = ({ input, label, meta }) => {
+  const className = `field ${meta.error && meta.touched ? 'error' : ''}`;
+  return (
+    <div className={className}>
+      <label htmlFor={input.name}>{label}</label>
+      <input id={input.name} {...input} autoComplete='off' />
+      {renderError(meta)}
+    </div>
+  );
+};
+
+function StreamForm(props) {
+  const onSubmit = (formValues) => {
+    props.onSubmit(formValues);
+  };
+
+  return (
+    <form onSubmit={props.handleSubmit(onSubmit)} className='ui form error'>
+      <Field name='title' component={renderInput} label='Enter Title' />
+      <Field
+        name='description'
+        component={renderInput}
+        label='Enter Description'
+      />
+      <button className='ui button primary'>Submit</button>
+    </form>
+  );
+}
+
+const validateForm = (formValues) => {
+  const { title, description } = formValues;
+  const errorObj = {};
+
+  if (!title) errorObj.title = 'You must ente r a title';
+  if (!description) errorObj.description = 'You must enter a description';
+
+  return errorObj;
+};
+
+export default reduxForm({
+  form: 'StreamForm',
+  validate: validateForm,
+})(StreamForm);
+```
+
+In the end, look how slim our StreamCreate and StreamEdit components are:
+
+```js
+// StreamCreate
+import React from 'react';
+import { connect } from 'react-redux';
+import { createStream } from '../../actions';
+import StreamForm from './StreamForm';
+
+function StreamCreate(props) {
+  const onSubmit = (formValues) => {
+    props.createStream(formValues);
+  };
+
+  return (
+    <div>
+      <h3>Create a Stream</h3>
+      <StreamForm onSubmit={onSubmit} />
+    </div>
+  );
+}
+
+export default connect(null, { createStream })(StreamCreate);
+```
+
+```js
+// StreamEdit
+import React, { useEffect } from 'react';
+import { connect, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import _ from 'lodash';
+import { editStream, fetchStream } from '../../actions';
+import StreamForm from './StreamForm';
+
+function StreamEdit({ fetchStream, editStream }) {
+  const { streamId } = useParams();
+  const stream = useSelector((state) => {
+    return state.streams[streamId];
+  });
+
+  useEffect(() => {
+    fetchStream(streamId);
+  }, [streamId]);
+
+  const handleSubmitForm = (formValues) => {
+    editStream(streamId, formValues);
+  };
+
+  if (!stream) return `Loading Stream ${streamId}...`;
+
+  return (
+    <div>
+      <h3>Edit Stream</h3>
+      <StreamForm
+        onSubmit={handleSubmitForm}
+        initialValues={_.pick(stream, 'title', 'description')}
+      />
+    </div>
+  );
+}
+
+export default connect(null, { fetchStream, editStream })(StreamEdit);
+```
+
+### Setting Initial Values
+
+How can we get our initial form values in our Edit Form?
+
+- StreamEdit
+  - onSubmit, initialValues for "title" and description"
+  - Passes props down to StreamForm
+    - Technically we are passing props down to ReduxForm
+    - ReduxForm then passes those down to our StreamForm component
+    - We **must** use prop name `initialValues` to ReduxForm to represent initial values for our input elements
+
+### Avoiding Changes to Properties
+
+Although it seems like our Stream Edit form is working properly, there is a minor issue. We are submitting "id" and "userId" in the action creator, although those values aren't _changing_. Although our backend is fine with this, some might complain that we are sending a PUT request and providing information for properties that don't actually change! This is happening because Redux Form _thinks_ its initialValues property should have reference to id and userId. When we submit the form, Redux Form passes those two properties on, on top of the title and description we actually want. All of this occurs because we pass `<StreamForm initialValues={props.stream} />` -- we are passing _all_ our props as initial values. We really only want `props.description` and `props.title`
+
+We can fix this by simply with: `<StreamForm initialValues={{ title: props.stream.title, description: props.stream.description }}>` or we can make use of a lodash function to do so with slightly less code: `<StreamForm initialValues={\_.pick(props.stream, 'title', 'description')}>`
+
+Now with this fix, we also have one more issue: We no longer see the Edit / Delete buttons on the stream we just editted! Why is this? Clearly the User ID associated with that Stream is somehow being lost or changed...
+
+### PUT vs PATCH Requests
+
+We lost the User Id key to our saved Streams! The reason for this has to do with PUT vs PATCH requests...
+
+- PUT: Updates **ALL** properties of a record
+  - With this request, whatever properties you put inside the body of this request _replace_ all of the properties of the record we try to update. Therefore we lose the User ID with this method. (The id property is immune to this loss)
+- PATCH: Updates **SOME** properties of a record
+
+For us, we will fix this by going to our edit stream action create and replacing our axios.put call with axios.patch!
 
 ## Section 25 - Using React Portals
 

@@ -1,25 +1,27 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Router, Routes, Route } from 'react-router-dom';
 import Header from './Header';
 import StreamList from './streams/StreamList';
 import StreamCreate from './streams/StreamCreate';
 import StreamEdit from './streams/StreamEdit';
 import StreamDelete from './streams/StreamDelete';
 import StreamShow from './streams/StreamShow';
+import { history } from '../history';
+import { HistoryRouter } from './HistoryRouter';
 
 function App() {
   return (
     <React.Fragment>
-      <BrowserRouter>
+      <HistoryRouter history={history}>
         <Header />
         <Routes>
           <Route path='/' element={<StreamList />} />
           <Route path='/streams/new' element={<StreamCreate />} />
-          <Route path='/streams/edit' element={<StreamEdit />} />
-          <Route path='/streams/delete' element={<StreamDelete />} />
-          <Route path='/streams/show' element={<StreamShow />} />
+          <Route path='/streams/edit/:streamId' element={<StreamEdit />} />
+          <Route path='/streams/delete/:streamId' element={<StreamDelete />} />
+          <Route path='/streams/:streamId' element={<StreamShow />} />
         </Routes>
-      </BrowserRouter>
+      </HistoryRouter>
     </React.Fragment>
   );
 }
