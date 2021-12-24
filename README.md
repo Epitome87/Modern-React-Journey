@@ -4068,7 +4068,7 @@ const validateForm = (formValues) => {
   const { title, description } = formValues;
   const errorObj = {};
 
-  if (!title) errorObj.title = 'You must ente r a title';
+  if (!title) errorObj.title = 'You must enter a title';
   if (!description) errorObj.description = 'You must enter a description';
 
   return errorObj;
@@ -4174,6 +4174,53 @@ We lost the User Id key to our saved Streams! The reason for this has to do with
 For us, we will fix this by going to our edit stream action create and replacing our axios.put call with axios.patch!
 
 ## Section 25 - Using React Portals
+
+### `Originally Started: 12/22/2021`
+
+### Why Use Portals
+
+We need to create a Modal window for our app. But this is surprisingly challenging in React.
+
+Normally, all components are a child of a div in the HTML body with an id of "root". However, the _Portal_ feature in React lets us get around this!
+
+Without React / JavaScript, creating a Modal is relatively simple. We define the Modal in the HTML file as a div within a div (one for the background of modal, and one for the modal itself). We give it a high z-index, so it shows up over other elements, and make its background div take up the dimensions of the entire screen, so it hides the content behind it.
+
+But now let's try wrapping this Modal in yet another div (as would be the case in a React app, where the Modal would be deeply-nested). If we give it a position (of say, relative) and a z-index, we create something called a new **Stacking Context**. There are many ways of creating such a context, not just position: relative and z-index defined. When a stacking context is created, whatever element is displayed later will be displayed on top, despite the z-index. In a React app, simply deleting a parent div or giving it a higher z-index may not be an option, so we need a solution for this issue!
+
+With React Portal, we can make Modal appear as a direct child of the HTML body element, and give it a very high z-index, even though technically the Modal will be defined in one of our own components that is deeply nested in the body.
+
+### Creating a Portal
+
+```js
+// Modal.jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+const Modal = (props) => {
+  return ReactDOM.createPortal(
+    <div className='ui dimmer modals visible active'>
+      <div className='ui standard modal visible active'>Gibberish</div>
+    </div>,
+    document.querySelector('#modal')
+  );
+};
+
+export default Modal;
+```
+
+### React Fragments
+
+Using a **React Fragment** allows us to wrap multiple JSX components together without needing a div! This is useful because sometimes the presence of a div can throw our styling off, yet React requires only one top-level element to be returned.
+
+`<React.Fragment>JSX In Here</React.Fragment>`
+
+React.Fragment tags can also be shortened as just `<>JSX In Here</>`! But _some_ code quality checkers might complain about this approach, thinking it is an invalid element.
+
+### Outro
+
+Pretty short section! Not much to take notes on...we made a Modal by making use of React Portal and used the Modal to add the ability to delete a stream in our app.
+
+### Section Completed: 12/23/2021`
 
 ## Section 26 - Implementing Streaming Video
 
