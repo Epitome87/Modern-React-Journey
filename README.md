@@ -55,8 +55,8 @@ Project Directory:
 Importing the Libraries
 
 ```js
-import React from "react";
-import ReactDOM from "react-dom";
+import React from 'react';
+import ReactDOM from 'react-dom';
 ```
 
 This grabs code from the "react" folder inside the "node_modules" directory. The same with "react-dom".
@@ -87,7 +87,7 @@ Rendering the Component
 
 ```js
 // Render the App component where the HTML element with ID "root" is in the public/index.html file
-ReactDOM.render(<App />, document.querySelector("#root"));
+ReactDOM.render(<App />, document.querySelector('#root'));
 ```
 
 ## Section 2 - Building Content with JSX
@@ -111,7 +111,7 @@ const App = () => {
 
 // ES5 conversion:
 const App = () => {
-  return React.createElement("div", null, "Hi!");
+  return React.createElement('div', null, 'Hi!');
 };
 ```
 
@@ -288,7 +288,7 @@ Example of passing a prop:
 
 ```js
 // Giving CommentDetails an "author" prop
-<CommentDetail author="Matthew" />
+<CommentDetail author='Matthew' />
 ```
 
 - Value of prop isn't just limited to a hard-coded value, or string.
@@ -329,7 +329,7 @@ Wrap content into another Component by using the `props.children` property insid
 ```js
 // In App.js
 <ApprovalCard>
-  <CommentDetail author="Matthew" />
+  <CommentDetail author='Matthew' />
 </ApprovalCard>;
 
 // In ApprovalCard
@@ -606,7 +606,7 @@ In this lesson we just refactored the async geolocation call from the constructo
 Now we can come back and address the second way you can / might see state initialized:
 
 ```js
-state = { latitude: null, errorMessage: "" };
+state = { latitude: null, errorMessage: '' };
 ```
 
 No need for the `this` keyword. We can also drop the constructor, if all we were doing in it is initializing state. Babel converts this to JS code that uses the constructor and calls super behind-the-scenes.
@@ -629,8 +629,8 @@ We need a way to retrieve what season it is. We can create a helper function to 
 
 ```js
 const getSeason = (lat, month) => {
-  if (month > 2 && month < 9) return lat > 0 ? "summer" : "winter";
-  return lat > 0 ? "winter" : "summer";
+  if (month > 2 && month < 9) return lat > 0 ? 'summer' : 'winter';
+  return lat > 0 ? 'winter' : 'summer';
 };
 
 // In SeasonDisplay's functional component
@@ -645,7 +645,7 @@ Instead of using a series of if-else statements in our SeasonDisplay component (
 ```js
 return (
   <div>
-    {season === "winter" ? "Burr, it's chilly!" : "Let's hit the beach!"}
+    {season === 'winter' ? "Burr, it's chilly!" : "Let's hit the beach!"}
   </div>
 );
 ```
@@ -669,11 +669,11 @@ To reduce the use of our rather identical two ternary operators (for determining
 const seasonConfig = {
   summer: {
     text: "Let's hit the beach!",
-    iconName: "sun",
+    iconName: 'sun',
   },
   winter: {
     text: "Burr, it's cold!",
-    iconName: "snowflake",
+    iconName: 'snowflake',
   },
 };
 
@@ -699,7 +699,7 @@ But our spinner's text it just "Loading...". What if we want it different, depen
 ...Well, we can pass a prop to the spinner!
 
 ```js
-return <Spinner message="Please accept location request" />;
+return <Spinner message='Please accept location request' />;
 ```
 
 But what if we forgot to put the message prop in? We won't get any message rendering at all! We should have _some_ default text to fall-back to. We can do this with **default props**:
@@ -710,7 +710,7 @@ const Spinner = (props) => {
 };
 
 Spinner.defaultProps = {
-  message: "Loading...",
+  message: 'Loading...',
 };
 ```
 
@@ -718,7 +718,7 @@ Spinner.defaultProps = {
 
 ```js
 const Spinner = (props) => {
-  this.defaultProps = { message: "Loading" };
+  this.defaultProps = { message: 'Loading' };
 };
 ```
 
@@ -1008,10 +1008,10 @@ To make our AJAX call, we have two methods when working with axios.get, which re
 
 ```js
 axios
-  .get("https://api.unsplash/com/search/photos", {
+  .get('https://api.unsplash/com/search/photos', {
     params: { query: term },
     headers: {
-      Authorization: "Client-ID <OurAPIAccessKey>",
+      Authorization: 'Client-ID <OurAPIAccessKey>',
     },
   })
   .then((reponse) => console.log(reponse.data.results));
@@ -1447,10 +1447,10 @@ We will go with Option #2, and the **useEffect** hook will allow us to do so!
   - 3 When the component is rendered _for the first time and (whenever it re-renders and some piece of data has changed)_
 
 ```js
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 useEffect(() => {
-  console.log("I was executed!");
+  console.log('I was executed!');
 });
 ```
 
@@ -1469,7 +1469,7 @@ We want to use _useEffect_ to make our Wikipedia API call, both on initial rende
 ```js
 useEffect(() => {
   const search = async () => {
-    await axios.get("whatever");
+    await axios.get('whatever');
   };
 
   search();
@@ -1481,7 +1481,7 @@ useEffect(() => {
 ```js
 useEffect(() => {
   (async () => {
-    await axios.get("whatever");
+    await axios.get('whatever');
   })();
 }, [term]);
 ```
@@ -1490,7 +1490,7 @@ useEffect(() => {
 
 ```js
 useEffect(() => {
-  await axios.get("whatever").then((response) => {
+  await axios.get('whatever').then((response) => {
     console.log(response.data);
   });
 }, [term]);
@@ -1503,12 +1503,12 @@ Let's make our actual Wikipedia API request! Remember, when we pass axios.get a 
 ```js
 useEffect(() => {
   const search = async () => {
-    await axios.get("https://en.wikipedia.org/w/api.php", {
+    await axios.get('https://en.wikipedia.org/w/api.php', {
       params: {
-        action: "query",
-        list: "search",
-        origin: "*",
-        format: "json",
+        action: 'query',
+        list: 'search',
+        origin: '*',
+        format: 'json',
         srsearch: term,
       },
     });
@@ -1678,8 +1678,8 @@ Final solution:
 
 ```js
 const Search = () => {
-  const [term, setTerm] = useState("programming");
-  const [debouncedTerm, setDebouncedTerm] = useState("programming");
+  const [term, setTerm] = useState('programming');
+  const [debouncedTerm, setDebouncedTerm] = useState('programming');
   const [results, setResults] = useState([]);
 
   // Runs when term changes (each onChange of search input)
@@ -1696,12 +1696,12 @@ const Search = () => {
   // Runs when debouncedTerm changes
   useEffect(() => {
     const search = async () => {
-      const { data } = await axios.get("https://en.wikipedia.org/w/api.php", {
+      const { data } = await axios.get('https://en.wikipedia.org/w/api.php', {
         params: {
-          action: "query",
-          list: "search",
-          origin: "*",
-          format: "json",
+          action: 'query',
+          list: 'search',
+          origin: '*',
+          format: 'json',
           srsearch: debouncedTerm,
         },
       });
@@ -1773,7 +1773,7 @@ The solution?
 - A click on _any element_ will bubble up to the body, calling its _onClick_ handler!
 
 ```js
-document.body.addEventListener("click", () => {});
+document.body.addEventListener('click', () => {});
 ```
 
 ### Binding an Event Handler
@@ -1783,7 +1783,7 @@ Where can we set up this event lisener on the body? In a _useEffect_ call in our
 ```js
 useEffect(() => {
   document.body.addEventListener(
-    "click",
+    'click',
     () => {
       setOpen(false);
     },
@@ -2042,10 +2042,10 @@ export default Route;
 // App.js
 return (
   <div>
-    <Route path="/accordion">
+    <Route path='/accordion'>
       <Accordion items={items} />
     </Route>
-    <Route path="/list">
+    <Route path='/list'>
       <Search items={items} />
     </Route>
   </div>
@@ -2106,13 +2106,13 @@ const Route = ({ path, children }) => {
 
   useEffect(() => {
     const onLocationChange = () => {
-      console.log("Location Changed!");
+      console.log('Location Changed!');
       setCurrentPath(window.location.pathname);
     };
-    window.addEventListener("popstate", onLocationChange);
+    window.addEventListener('popstate', onLocationChange);
 
     return () => {
-      window.removeEventListener("popstate", onLocationChange);
+      window.removeEventListener('popstate', onLocationChange);
     };
   }, []);
 
@@ -2209,8 +2209,8 @@ Looking at our video searching app, we can identify our inputs (default search t
 - Can return our outputs as either an array (the React way) or an Object (more of a JS way)
 
 ```js
-import { useEffect, useState } from "react";
-import youtube from "../apis/youtube";
+import { useEffect, useState } from 'react';
+import youtube from '../apis/youtube';
 
 const useVideos = (defaultSearchTerm) => {
   const [videos, setVideos] = useState([]);
@@ -2220,7 +2220,7 @@ const useVideos = (defaultSearchTerm) => {
   }, [defaultSearchTerm]);
 
   const search = async (term) => {
-    const response = await youtube.get("/search", {
+    const response = await youtube.get('/search', {
       params: {
         q: term,
       },
@@ -2241,7 +2241,7 @@ export default useVideos;
 ```js
 const App = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [videos, search] = useVideos("buildings");
+  const [videos, search] = useVideos('buildings');
 
   useEffect(() => {
     setSelectedVideo(videos[0]);
@@ -2444,7 +2444,7 @@ The _dispatch_ part of the process is part of Redux itself.
 ```js
 // Reducers (Departments!)
 const claimsHistory = (oldListOfClaims = [], action) => {
-  if (action.type === "CREATE_CLAIM") {
+  if (action.type === 'CREATE_CLAIM') {
     // We care about this Action ("form")!
     return [...oldListOfClaims, action.payload];
   }
@@ -2454,9 +2454,9 @@ const claimsHistory = (oldListOfClaims = [], action) => {
 };
 
 const accounting = (bagOfMoney = 100, action) => {
-  if (action.type === "CREATE_CLAIM") {
+  if (action.type === 'CREATE_CLAIM') {
     return bagOfMoney - action.amountToCollect;
-  } else if (action.type === "CREATE_POLICY") {
+  } else if (action.type === 'CREATE_POLICY') {
     return bagOfMoney + action.amountToCollect;
   }
 
@@ -2464,9 +2464,9 @@ const accounting = (bagOfMoney = 100, action) => {
 };
 
 const policies = (listOfPolicies = [], action) => {
-  if (action.type === "CREATE_POLICY") {
+  if (action.type === 'CREATE_POLICY') {
     return [...listOfPolicies, action.payload.name];
-  } else if (action.type === "DELETE_POLICY") {
+  } else if (action.type === 'DELETE_POLICY') {
     return listOfPolicies.filter((name) => name !== action.payload.name);
   }
 
@@ -2496,14 +2496,14 @@ const ourDepartments = combineReducers({
 
 const store = createStore(ourDepartments);
 
-const action = createPolicy("Matthew", 20);
+const action = createPolicy('Matthew', 20);
 
 store.dispatch(action); // Alert each department of this action
 store.getState(); // { accounting: 120, claimsHistory: [], policies: [ "Matthew" ]}
 
-store.dispatch(createPolicy("Caitlin", 15));
-store.dispatch(createPolicy("Daniel", 30)); // { accounting: 165, policies: [ "Matthew", "Caitlin", "Daniel "] }
-store.dispatch(createClaim("Matthew", 120)); // { accounting: 45, policies: [ "Matthew", "Caitlin", "Daniel" ], claimsHistory: { name: "Matthew", amountToCollect: 120 }}
+store.dispatch(createPolicy('Caitlin', 15));
+store.dispatch(createPolicy('Daniel', 30)); // { accounting: 165, policies: [ "Matthew", "Caitlin", "Daniel "] }
+store.dispatch(createClaim('Matthew', 120)); // { accounting: 45, policies: [ "Matthew", "Caitlin", "Daniel" ], claimsHistory: { name: "Matthew", amountToCollect: 120 }}
 ```
 
 - Store object represents our entire Redux app. Contains references to all our Reducers, and all the data produced by those Reducers.
@@ -2601,7 +2601,7 @@ Our Action Creator looks like:
 export const selectSong = (song) => {
   // Return an Action (Plain JS object). Must have a type property, optionally a payload
   return {
-    type: "SONG_SELECTED",
+    type: 'SONG_SELECTED',
     payload: song,
   };
 };
@@ -2614,15 +2614,15 @@ Our Reducers look like:
 ```js
 const songsReducer = (action, payload) => {
   return [
-    { title: "Uprising", duration: "4:18" },
-    { title: "No Scrubs", duration: "4:05" },
-    { title: "All Star", duration: "3:15" },
-    { title: "I Want It That Way", duration: "1:45" },
+    { title: 'Uprising', duration: '4:18' },
+    { title: 'No Scrubs', duration: '4:05' },
+    { title: 'All Star', duration: '3:15' },
+    { title: 'I Want It That Way', duration: '1:45' },
   ];
 };
 
 const selectedSongReducer = (selectedSong = null, action) => {
-  if (action.type === "SONG_SELECTED") {
+  if (action.type === 'SONG_SELECTED') {
     return action.payload;
   }
 
@@ -2644,18 +2644,18 @@ export default combineReducers({
 In our Index.js, we import Provider, createSTore, and our reducers. We then wrap Provider around App, passing to its "store" property and instance of our created store.
 
 ```js
-import React from "react";
-import ReactDOM from "react-dom";
-import { Provider } from "react-redux";
-import { createStore } from "redux";
-import App from "./components/App";
-import reducers from "./reducers";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import App from './components/App';
+import reducers from './reducers';
 
 ReactDOM.render(
   <Provider store={createStore(reducers)}>
     <App />
   </Provider>,
-  document.querySelector("#root")
+  document.querySelector('#root')
 );
 ```
 
@@ -2663,7 +2663,7 @@ ReactDOM.render(
 
 ```js
 // SongList.js
-import { connect } from "react-redux";
+import { connect } from 'react-redux';
 export default connect()(SongList);
 ```
 
@@ -2672,7 +2672,7 @@ The above code looks pretty odd! But it is perfectly valid JavaScript syntax. It
 ```js
 function connect() {
   return function () {
-    return "Hi there!";
+    return 'Hi there!';
   };
 }
 
@@ -2798,7 +2798,7 @@ In the list above, we will cover the 1st three steps by doing the following:
 ```js
 export const fetchPosts = () => {
   return {
-    type: "FETCH_POSTS",
+    type: 'FETCH_POSTS',
   };
 };
 ```
@@ -2806,9 +2806,9 @@ export const fetchPosts = () => {
 - Use that Action Creator in PostList:
 
 ```js
-import React, { useEffect } from "react";
-import { connect } from "react-redux";
-import { fetchPosts } from "../actions";
+import React, { useEffect } from 'react';
+import { connect } from 'react-redux';
+import { fetchPosts } from '../actions';
 
 const PostList = (props) => {
   useEffect(() => {
@@ -2829,14 +2829,14 @@ We now move onto the next 3 steps.
 We create a custom, pre-configured axios object and import it into our action creator file, where we will make a GET request:
 
 ```js
-import jsonPlaceholder from "../apis/jsonPlaceholder";
+import jsonPlaceholder from '../apis/jsonPlaceholder';
 
 export const fetchPosts = async () => {
   // Bad approach! Breaking rules of Redux! Breaking rules of Action Creator: "Actions must be plain objects"! "Use custom middleware for async actions"!
-  const response = await jsonPlaceholder.get("/posts");
+  const response = await jsonPlaceholder.get('/posts');
 
   return {
-    type: "FETCH_POSTS",
+    type: 'FETCH_POSTS',
     payload: response,
   };
 };
@@ -2861,8 +2861,8 @@ What if we just remove async / await from the action creator?
 
 ```js
 export const fetchPosts = () => {
-  const promise = jsonPlaceholder.get("/posts");
-  return { type: "FETCH_POSTS", payload: promise };
+  const promise = jsonPlaceholder.get('/posts');
+  return { type: 'FETCH_POSTS', payload: promise };
 };
 ```
 
@@ -2921,10 +2921,10 @@ How does this help us, though? If whatever is passed to Redux Thunk is a typical
 ```js
 export const fetchPosts = () => {
   return async function (dispatch, getState) {
-    const response = await jsonPlaceholder.get("/posts");
+    const response = await jsonPlaceholder.get('/posts');
 
     // We MANUALLY dispatch when appropriate (after we await response)
-    dispatch({ type: "FETCH_POSTS", payload: response });
+    dispatch({ type: 'FETCH_POSTS', payload: response });
   };
 };
 ```
@@ -2938,10 +2938,10 @@ _Redux Thunk is only 14 lines of code!_
 To use Thunk, we can import it with `import thunk from "redux-thunk"`. Since it is a middleware, which we need to attach to Redux, we will also need to import: `import { applyMiddleware } from "redux"`. Lastly, when we create our store, we pass not only our reducers, but also `applyMiddleware(thunk)`:
 
 ```js
-import { Provider } from "react-redux";
-import { createStore, applyMiddleware } from "redux";
-import thunk from "redux-thunk";
-import reducers from "./reducers";
+import { Provider } from 'react-redux';
+import { createStore, applyMiddleware } from 'redux';
+import thunk from 'redux-thunk';
+import reducers from './reducers';
 
 const store = createStore(reducers, applyMiddleware(thunk));
 
@@ -2949,7 +2949,7 @@ ReactDOM.render(
   <Provider store={store}>
     <App />
   </Provider>,
-  document.querySelector("#root")
+  document.querySelector('#root')
 );
 ```
 
@@ -2957,8 +2957,8 @@ We can also clean up our action creator syntax quite a bit using ES2015 pieces o
 
 ```js
 export const fetchPosts = () => async (dispatch) => {
-  const response = await jsonPlaceholder.get("/posts");
-  dispatch({ type: "FETCH_POSTS", payload: response });
+  const response = await jsonPlaceholder.get('/posts');
+  dispatch({ type: 'FETCH_POSTS', payload: response });
 };
 ```
 
@@ -3007,9 +3007,9 @@ In the context of JS, pushing an element into an Array is a mutation. Or if we r
 Inside of JS, strings and numbers are _immutable_ values; we cannot change them like we can arrays and objects. Consider:
 
 ```js
-const name = "Matthew";
+const name = 'Matthew';
 name[0]; // "M"
-name[0] = "X"; // No errors, but...
+name[0] = 'X'; // No errors, but...
 name; // Name is still "Matthew", so we did not actually change the first letter
 ```
 
@@ -3088,7 +3088,7 @@ We attempt to memoize our fetchUser function:
 export const fetchUser = function (id) {
   return _.memoize(async function (dispatch) {
     const response = await jsonPlaceholder.get(`/users/${id}`);
-    dispatch({ type: "FETCH_USER", payload: response.data });
+    dispatch({ type: 'FETCH_USER', payload: response.data });
   });
 };
 ```
@@ -3108,7 +3108,7 @@ export const fetchUser = (id) => (dispatch) => {
 const _fetchUser = _.memoize(async (id, dispatch) => {
   // Fetch a single user based on ID
   const response = await jsonPlaceholder.get(`/users/${id}`);
-  dispatch({ type: "FETCH_USER", payload: response.data });
+  dispatch({ type: 'FETCH_USER', payload: response.data });
 });
 ```
 
@@ -3135,7 +3135,7 @@ This lesson was confusing AF! Here is the code where we use action creators insi
 export const fetchPostsAndUsers = () => async (dispatch, getState) => {
   await dispatch(fetchPosts());
 
-  const userIds = _.uniq(_.map(getState().posts, "userId"));
+  const userIds = _.uniq(_.map(getState().posts, 'userId'));
 
   userIds.forEach((id) => dispatch(fetchUser(id)));
 };
@@ -3158,7 +3158,7 @@ export const fetchPostsAndUsers = () => async (dispatch, getState) => {
 
   // Refactor using lodash's chain function
   _.chain(getState().posts)
-    .map("userId")
+    .map('userId')
     .uniq()
     .forEach((id) => dispatch(fetchUser(id)))
     .value();
@@ -3381,12 +3381,12 @@ In React, we would initialize the library in our GoogleAuth component with a use
 
 ```js
 useEffect(() => {
-  window.gapi.load("client:auth2", () => {
+  window.gapi.load('client:auth2', () => {
     // Inside Callback for when Library finished loading
     window.gapi.client.init({
       clientId:
-        "129753933363-qego7o5vvdiagb2lo282qgtpud9rtrvu.apps.googleusercontent.com",
-      scope: "email",
+        '129753933363-qego7o5vvdiagb2lo282qgtpud9rtrvu.apps.googleusercontent.com',
+      scope: 'email',
     });
   });
 }, []);
@@ -3413,13 +3413,13 @@ const [auth, setAuth] = useState(null);
 const [isSignedIn, setIsSignedIn] = useState(null);
 
 useEffect(() => {
-  window.gapi.load("client:auth2", () => {
+  window.gapi.load('client:auth2', () => {
     // Inside Callback for when Library finished loading
     window.gapi.client
       .init({
         clientId:
-          "129753933363-qego7o5vvdiagb2lo282qgtpud9rtrvu.apps.googleusercontent.com",
-        scope: "email",
+          '129753933363-qego7o5vvdiagb2lo282qgtpud9rtrvu.apps.googleusercontent.com',
+        scope: 'email',
       })
       .then(() => {
         //   Lib successfully initialized
@@ -3560,7 +3560,7 @@ We import a reducer that Redux Form provides to us automatically, and then we gi
 
 ```js
 // /reducers/index.js
-import { reducer } from "redux-form";
+import { reducer } from 'redux-form';
 
 export default combineReducers({ form: reducer });
 ```
@@ -3579,8 +3579,8 @@ To create a form, we import `Field` and `reduxForm` from "redux-form".
 - We can use object destructuring to spread out every key/value pair in the form props object into our input tag, since we typically want access to more than just the value and onChange event.
 
 ```js
-import React from "react";
-import { Field, reduxForm } from "redux-form";
+import React from 'react';
+import { Field, reduxForm } from 'redux-form';
 
 function StreamCreate() {
   const renderInput = (formProps) => {
@@ -3596,14 +3596,14 @@ function StreamCreate() {
 
   return (
     <form>
-      <Field name="title" component={renderInput} />
-      <Field name="description" component={renderInput} />
+      <Field name='title' component={renderInput} />
+      <Field name='description' component={renderInput} />
     </form>
   );
 }
 
 export default reduxForm({
-  form: "streamCreate",
+  form: 'streamCreate',
 })(StreamCreate);
 ```
 
@@ -3647,7 +3647,7 @@ With the previous validation function hooked up to our form, Redux Form will go 
 ```js
 const renderInput = ({ input, label, meta }) => {
   return (
-    <div className="field">
+    <div className='field'>
       <label htmlFor={input.name}>{label}</label>
       <input id={input.name} {...input} />
       <div>{meta.error}</div>
@@ -3724,9 +3724,9 @@ Create a special instance of axios, with the base URL set to our json server:
 
 ```js
 // apis/streams.js
-import axios from "axios";
+import axios from 'axios';
 export default axios.create({
-  baseURL: "http://localhost:3001",
+  baseURL: 'http://localhost:3001',
 });
 ```
 
@@ -3736,7 +3736,7 @@ Create our action for creating a stream (unfinished). It returns a function, so 
 // actions/index.js
 export const createStream = (formValues) => {
   return async (dispatch) => {
-    streams.post("/streams", formValues);
+    streams.post('/streams', formValues);
   };
 };
 ```
@@ -3749,7 +3749,7 @@ It's pretty simple, we can just add `connect()` before the other stuff, and then
 
 ```js
 const formWrapped = reduxForm({
-  form: "streamCreate",
+  form: 'streamCreate',
   validate: validateForm,
 })(StreamCreate);
 
@@ -3773,7 +3773,7 @@ With our createStream action wired up to Redux, and therefore accessible via a p
 // actions/index.js
 export const createStream = (formValues) => {
   return async (dispatch) => {
-    const response = await streams.post("/streams", formValues);
+    const response = await streams.post('/streams', formValues);
 
     dispatch({
       type: CREATE_STREAM,
@@ -3792,7 +3792,7 @@ Let's create all our action creators related to our Streams!
 ```js
 export const createStream = (formValues) => {
   return async (dispatch) => {
-    const response = await streams.post("/streams", formValues);
+    const response = await streams.post('/streams', formValues);
 
     dispatch({
       type: CREATE_STREAM,
@@ -3825,7 +3825,7 @@ export const editStream = (streamId, formValues) => {
 
 export const fetchStreams = () => {
   return async (dispatch) => {
-    const response = await streams.get("/streams");
+    const response = await streams.get('/streams');
 
     dispatch({
       type: FETCH_STREAMS,
@@ -3892,8 +3892,8 @@ import {
   CREATE_STREAM,
   DELETE_STREAM,
   EDIT_STREAM,
-} from "../actions/types";
-import _ from "lodash";
+} from '../actions/types';
+import _ from 'lodash';
 
 const streamReducer = (state = [], action) => {
   switch (action.type) {
@@ -3901,7 +3901,7 @@ const streamReducer = (state = [], action) => {
       // Our API returns Streams as an array (in action.payload), so we use this lodash method to
       // essentially map it to an Object, where the key is the value of the "id" property. We then
       // merge it to the existing streams
-      return { ...state, ..._.mapKeys(action.payload, "id") };
+      return { ...state, ..._.mapKeys(action.payload, 'id') };
     case FETCH_STREAM:
       return { ...state, [action.payload.id]: action.payload };
     case CREATE_STREAM:
@@ -4020,27 +4020,27 @@ We will basically copy and paste our current StreamCreate code into a new compon
 
 ```js
 // StreamForm
-import React from "react";
-import { Field, reduxForm } from "redux-form";
+import React from 'react';
+import { Field, reduxForm } from 'redux-form';
 
 const renderError = (meta) => {
   const { error, touched } = meta;
 
   if (touched && error) {
     return (
-      <div className="ui error message">
-        <div className="header">{error}</div>
+      <div className='ui error message'>
+        <div className='header'>{error}</div>
       </div>
     );
   }
 };
 
 const renderInput = ({ input, label, meta }) => {
-  const className = `field ${meta.error && meta.touched ? "error" : ""}`;
+  const className = `field ${meta.error && meta.touched ? 'error' : ''}`;
   return (
     <div className={className}>
       <label htmlFor={input.name}>{label}</label>
-      <input id={input.name} {...input} autoComplete="off" />
+      <input id={input.name} {...input} autoComplete='off' />
       {renderError(meta)}
     </div>
   );
@@ -4052,14 +4052,14 @@ function StreamForm(props) {
   };
 
   return (
-    <form onSubmit={props.handleSubmit(onSubmit)} className="ui form error">
-      <Field name="title" component={renderInput} label="Enter Title" />
+    <form onSubmit={props.handleSubmit(onSubmit)} className='ui form error'>
+      <Field name='title' component={renderInput} label='Enter Title' />
       <Field
-        name="description"
+        name='description'
         component={renderInput}
-        label="Enter Description"
+        label='Enter Description'
       />
-      <button className="ui button primary">Submit</button>
+      <button className='ui button primary'>Submit</button>
     </form>
   );
 }
@@ -4068,14 +4068,14 @@ const validateForm = (formValues) => {
   const { title, description } = formValues;
   const errorObj = {};
 
-  if (!title) errorObj.title = "You must enter a title";
-  if (!description) errorObj.description = "You must enter a description";
+  if (!title) errorObj.title = 'You must enter a title';
+  if (!description) errorObj.description = 'You must enter a description';
 
   return errorObj;
 };
 
 export default reduxForm({
-  form: "StreamForm",
+  form: 'StreamForm',
   validate: validateForm,
 })(StreamForm);
 ```
@@ -4084,10 +4084,10 @@ In the end, look how slim our StreamCreate and StreamEdit components are:
 
 ```js
 // StreamCreate
-import React from "react";
-import { connect } from "react-redux";
-import { createStream } from "../../actions";
-import StreamForm from "./StreamForm";
+import React from 'react';
+import { connect } from 'react-redux';
+import { createStream } from '../../actions';
+import StreamForm from './StreamForm';
 
 function StreamCreate(props) {
   const onSubmit = (formValues) => {
@@ -4107,12 +4107,12 @@ export default connect(null, { createStream })(StreamCreate);
 
 ```js
 // StreamEdit
-import React, { useEffect } from "react";
-import { connect, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
-import _ from "lodash";
-import { editStream, fetchStream } from "../../actions";
-import StreamForm from "./StreamForm";
+import React, { useEffect } from 'react';
+import { connect, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import _ from 'lodash';
+import { editStream, fetchStream } from '../../actions';
+import StreamForm from './StreamForm';
 
 function StreamEdit({ fetchStream, editStream }) {
   const { streamId } = useParams();
@@ -4135,7 +4135,7 @@ function StreamEdit({ fetchStream, editStream }) {
       <h3>Edit Stream</h3>
       <StreamForm
         onSubmit={handleSubmitForm}
-        initialValues={_.pick(stream, "title", "description")}
+        initialValues={_.pick(stream, 'title', 'description')}
       />
     </div>
   );
@@ -4193,15 +4193,15 @@ With React Portal, we can make Modal appear as a direct child of the HTML body e
 
 ```js
 // Modal.jsx
-import React from "react";
-import ReactDOM from "react-dom";
+import React from 'react';
+import ReactDOM from 'react-dom';
 
 const Modal = (props) => {
   return ReactDOM.createPortal(
-    <div className="ui dimmer modals visible active">
-      <div className="ui standard modal visible active">Gibberish</div>
+    <div className='ui dimmer modals visible active'>
+      <div className='ui standard modal visible active'>Gibberish</div>
     </div>,
-    document.querySelector("#modal")
+    document.querySelector('#modal')
   );
 };
 
@@ -4241,7 +4241,7 @@ We will make use of the Node Media Server package to create our RTMP Server. We 
 We then create a new folder in our top-most _streams_ app folder, called _rtmpserver_, and create an index.js file. We then simply copy/paste some code from the Node-Media-Server npm example page:
 
 ```js
-const NodeMediaServer = require("node-media-server");
+const NodeMediaServer = require('node-media-server');
 
 const config = {
   rtmp: {
@@ -4253,7 +4253,7 @@ const config = {
   },
   http: {
     port: 8000,
-    allow_origin: "*",
+    allow_origin: '*',
   },
 };
 
@@ -4272,6 +4272,115 @@ We now need to set up the OBS software on our computer.
 ### OBS Scene Setup
 
 ## Section 27 - The Context System with React
+
+### `Originally Started: 12/25/2021`
+
+### The Context System
+
+| Props System                                                    | Context System                                                    |
+| --------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Gets data from a parent component to a _direct_ child component | Gets data from a parent component to _any_ nested child component |
+
+The context system is just about communicating information, so it is not necessarily a replacement for like React Redux (as some claim)
+
+### An App with Context
+
+To learn Context, we will make a simple app that lets the user select a language, and has a few nested components that will alter their rendering based on the language.
+
+### Getting Data Out of a Context
+
+To get information _into_ our Context object, we can either set up a **Default Value** or a **Provider** component in our parent.
+
+To get information _out_ of our Context, we can either reference the `this.context` property inside of our nested child component or create a **Consumer** component in our nested child.
+
+### Creating Context Objects
+
+Creating a Context object is rather straightforward:
+
+```js
+// contexts/LanguageContext.jsx
+import React from 'react';
+export default LanguageContext.createContext('english');
+```
+
+And then in our class-based component that will be fed the context:
+
+```js
+class Button extends React.Component {
+  static contextType = LanguageContext;
+}
+
+// Or we can do this outside of the Button component:
+Button.contextType = LanguageContext;
+```
+
+The name `contextType` is _very_ important -- the property must be named this!
+
+We now have access to our context value with: `this.context` -- in our case "English".
+
+### The Context Provider
+
+The final thing we have to figure out is how to _change_ the value inside of the context object. So far, we have been limited to staying with our supplied default value.
+
+If we want to change the value inside of our Context object, we have to create a Component that will act as a source of information for this context. For us, this will be the App; it is the component that knows what the language state is. We do this by creating a **Provider** component.
+
+```js
+// App.js
+<LanguageContext.Provider value={language}>
+  <UserCreate />
+</LanguageContext.Provider>
+```
+
+We wrap our UserCreate component with the context we want, followed by .Provider. We then assign it a special prop name of `value` (and it must be named exactly this!). The value represents the information we want to communicate from our App to the Context object. So every time language changes, we push its updated value into the Context provider, for deeply-nested children to access the most up-to-date language state.
+
+### Gotchas Around Providers
+
+- Application loads up in the browser
+- We create a context object with a default value of "english"
+- App component gets rendered, creates a Provider that wraps UserCreate
+- Provider updates the value of the context object to "this.state.language"
+- Button and Field component reach into context object, see the value from "this.state.language"
+- Button and Field render appropriate text to the screen
+
+Big _gotcha_ with one of the steps above!
+
+- Each separate use of LanguageContext.Provider creates a new, separate "pipe" of information! FOr example, in the below code snippet, the second UserCreate will always have its context object contain "english" as the value for language, while the first UserCreate will have its language appropriately flip between English/Dutch depending on which button the user clicks.
+
+```js
+// App.js
+<LanguageContext.Provider value={language}>
+  <UserCreate />
+</LanguageContext.Provider>
+
+<LanguageContext.Provider value={"english"}>
+  <UserCreate />
+</LanguageContext.Provider>
+```
+
+### Accessing Data with Consumers
+
+The second way of retrieving information from the 'pipe' is by creating a **Consumer Component**. It is created for us automatically when we create a new context object (much like the Provider component).
+
+```js
+// Button.jsx
+  render() {
+    return (
+      <button className='ui button primary'>
+        <LanguageContext.Consumer>
+          {(value) => (value === 'english' ? 'Submit' : 'Voorleggen')}
+        </LanguageContext.Consumer>
+      </button>
+    );
+  }
+```
+
+Using this Consumer approach, we no longer have to declare `static contextType = LanguageContext`. Instead, we wrap the part of our Button component that needs access to the context object with `LanguageContext.Consumer`. Between the Consumer's opening and closing brackets, we define a function with an automatically-provided parameter. This parameter is the value of the context being provided to the consumer. We can then use this value in our component to render to the screen, or any other calculation we wish.
+
+### Pulling From Multiple Contexts
+
+Why would we use the Consumer method instead of just using `this.context`? We will make use of Consumer whenever we want to get information out of _multiple_ different context objects inside of a single component. `this.context` is only used when we are accessing a single context object inside of a component.
+
+### `Section Completed: 12/25/2021`
 
 ## Section 28 - Replacing Redux with Context
 
