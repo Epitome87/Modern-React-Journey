@@ -4384,6 +4384,150 @@ Why would we use the Consumer method instead of just using `this.context`? We wi
 
 ## Section 28 - Replacing Redux with Context
 
+### `Originally Started: 12/26/2021`
+
+### Replacing Redux with Context
+
+| Redux                                             | Context                                |
+| ------------------------------------------------- | -------------------------------------- |
+| Distibutes data to various components             | Distributes data to various components |
+| Centralizes data in a store                       |                                        |
+| Provides mechanism for changing data in the store |                                        |
+
+Context by itself definitely is not replacing all of the features Redux provides us. But we'll explore how we can somehow replace Redux with the Context system, even though it seems far more limited than Redux. We will be doing this only for understanding purposes; most non-trivial apps should probably stick with Redux!
+
+We will refactor our language-selection logic into its own LanguageSelector component.
+
+### Creating a Store Component
+
+Again, while it is not recommended to try to replace Redux with Context, we will do so since it's a popular topic.
+
+If we want to use Context in place of Redux...
+
+- We need to be able to get data to any component in our hierarchy
+  - Well, that's what Context is meant for! So this will be easy.
+- We need to be able to separate our view logic from business logic
+- We need to be able to split up business logic (not have a single file with 10000 lines of code!)
+
+For our app, we could addredss these issues by extracting the business logic out of the App component and putting it into a _LanguageStore Component_. Inside this component there will be our _language_ state and _onLanguageChange_ callback. There will also be an implementation of a provider `<LanguageContext.Provider value={{language, onLanguageChange}} />` call. We would create one LanguageStore for our entire app, so there would be a single, centralized source of truth for our state.
+
+### Implementing a Language Store
+
+```js
+import React from 'react';
+
+const Context = React.createContext('english');
+
+export class LanguageStore extends React.Component {
+  state = { language: 'english' };
+
+  onLanguageChange = (language) => {
+    this.setState({ language });
+  };
+
+  render() {
+    return (
+      <Context.Provider
+        value={{ ...this.state, onLanguageChange: this.onLanguageChange }}
+      >
+        {this.props.children}
+      </Context.Provider>
+    );
+  }
+}
+
+export default Context;
+```
+
+### Rendering the Language Store
+
+We can greatly simplify our App component now:
+
+```js
+import React, { useState } from 'react';
+import UserCreate from './UserCreate';
+import LanguageSelector from './LanguageSelector';
+import { LanguageStore } from '../contexts/LanguageContext';
+
+function App() {
+  return (
+    <div className='ui container'>
+      <LanguageStore>
+        <LanguageSelector />
+        <UserCreate />
+      </LanguageStore>
+    </div>
+  );
+}
+
+export default App;
+```
+
+### Connecting the Selector to the Store
+
+```js
+import React, { Component } from 'react';
+import LanguageContext from '../contexts/LanguageContext';
+
+export default class LanguageSelector extends Component {
+  static contextType = LanguageContext;
+
+  render() {
+    return (
+      <div>
+        Select a language:
+        <i
+          className='flag us'
+          onClick={() => this.context.onLanguageChange('english')}
+        />
+        <i
+          className='flag nl'
+          onClick={() => this.context.onLanguageChange('dutch')}
+        />
+      </div>
+    );
+  }
+}
+```
+
+### Connecting the Field and Button to the Store
+
+Same as before, but since our context is now an object with two properties, we change it slightly:
+
+```js
+import React from 'react';
+import LanguageContext from '../contexts/LanguageContext';
+
+class Field extends React.Component {
+  static contextType = LanguageContext;
+
+  render() {
+    // Used to be this.context.language
+    const text = this.context.language === 'english' ? 'Name' : 'Naam';
+    return (
+      <div className='ui field'>
+        <label>{text}</label>
+        <input />
+      </div>
+    );
+  }
+}
+
+export default Field;
+```
+
+### Context vs Redux Recap
+
+A couple of reasons to still use Redux over Context...
+
+| Redux                        | Context                                                         |
+| ---------------------------- | --------------------------------------------------------------- |
+| + Excellent documentation    | + No need for an extra lib                                      |
+| + Well-known design patterns | - Hard to build a 'store' component with cross cutting concerns |
+| + Lots of open source libs   |                                                                 |
+
+In Context, we would probably want to create a different Store for each type of resource we have in our app. E.g a LanguageStore, a UserStore, a ThemeStore, etc. All would be a separate React component, and sharing data between them would be difficult.
+
 # IMPORTANT NOTE: SECTIONS HEREAFTER CONCERN ONLY OLDER VERSIONS OF REACT
 
 ## Section 29 - Working with Older Versions of React
